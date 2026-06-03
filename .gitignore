@@ -1,6 +1,28 @@
-**/target/
+# Maven build output
+target/
+
+# IDE - IntelliJ IDEA
 .idea/
 *.iml
+
+# IDE - VS Code
+.vscode/
+
+# Compiled Java
 *.class
-*Test.class
-**/test/
+
+# JAR / WAR archives
+*.jar
+*.war
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE - Eclipse
+.project
+.classpath
+.settings/
