@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # ========== 前端 nginx ==========
+  frontend:
+    build:
+      context: ./Frontend/CN-nginx
+      dockerfile: Dockerfile
+    container_name: career-nexus-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+  # ========== Spring Boot 后端 ==========
+  backend:
+    build: ./Backend/CareerNexus
+    container_name: career-nexus-backend
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/CareerNexus?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1234
+    depends_on:
+      - mysql
+    restart: always
+
+  # ========== MySQL 数据库 ==========
+  mysql:
+    image: mysql:8.0
+    container_name: career-nexus-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: career_nexus
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+
+volumes:
+  mysql_data:
