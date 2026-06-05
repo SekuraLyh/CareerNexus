@@ -15,12 +15,17 @@ import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
 import springfox.documentation.service.Contact;
+import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.oas.annotations.EnableOpenApi;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -76,8 +81,10 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         return new Docket(DocumentationType.OAS_30)
                 .groupName("管理端接口")
                 .apiInfo(apiInfo)
+                .securitySchemes(Collections.singletonList(apiKey()))
+                .securityContexts(Collections.singletonList(securityContext()))
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.cn.controller.admin"))
+                .apis(RequestHandlerSelectors.basePackage("com.cn.controller"))
                 .paths(PathSelectors.any())
                 .build();
     }
@@ -97,10 +104,33 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         return new Docket(DocumentationType.OAS_30)
                 .groupName("用户端接口")
                 .apiInfo(apiInfo)
+                .securitySchemes(Collections.singletonList(apiKey()))
+                .securityContexts(Collections.singletonList(securityContext()))
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.cn.controller.auth"))
                 .paths(PathSelectors.any())
                 .build();
+    }
+
+    /**
+     * Swagger 全局 Bearer Token 认证方案 — 让 Knife4j 界面出现 "Authorize" 按钮
+     */
+    private ApiKey apiKey() {
+        return new ApiKey("BearerToken", "Authorization", "header");
+    }
+
+    /**
+     * 认证上下文：将所有接口纳入 BearerToken 安全方案
+     */
+    private SecurityContext securityContext() {
+        return SecurityContext.builder()
+                .securityReferences(defaultAuth())
+                .build();
+    }
+
+    private List<SecurityReference> defaultAuth() {
+        AuthorizationScope scope = new AuthorizationScope("global", "accessEverything");
+        return Collections.singletonList(new SecurityReference("BearerToken", new AuthorizationScope[]{scope}));
     }
 
     /**

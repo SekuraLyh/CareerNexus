@@ -1,5 +1,6 @@
 package com.cn.service.impl;
 
+import com.cn.DTO.ChangePasswordDTO;
 import com.cn.DTO.LoginDTO;
 import com.cn.VO.LoginVO;
 import com.cn.VO.LoginVO.UserInfo;
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JwtProperties jwtProperties;
     
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(); // 密码编码器
 
     /**
      * 登录
@@ -81,6 +82,32 @@ public class UserServiceImpl implements UserService {
         
         log.info("用户登录成功: {}, 类型: {}", username, user.getUserType());
         return new LoginVO(token, userInfo);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param userId      用户ID（从 JWT Token 中获取）
+     * @param passwordDTO 密码信息（包含旧密码和新密码）
+     */
+    @Override
+    public void changePassword(Long userId, ChangePasswordDTO passwordDTO) {
+        // 查询用户
+        UserAccont user = userMapper.getById(userId);
+        if (user == null) {
+            throw new BusinessException(404, ACCOUNT_NOT_FOUND);
+        }
+
+        // 验证旧密码
+        if (!passwordEncoder.matches(passwordDTO.getOldPassword(), user.getPassword())) {
+            throw new BusinessException(400, OLD_PASSWORD_ERROR);
+        }
+
+        // 更新为新密码
+        String newPasswordEncoded = passwordEncoder.encode(passwordDTO.getNewPassword());
+        userMapper.updatePassword(userId, newPasswordEncoded);
+
+        log.info("用户密码修改成功: userId={}, username={}", userId, user.getUsername());
     }
 
     /**

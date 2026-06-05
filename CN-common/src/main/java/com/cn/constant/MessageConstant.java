@@ -13,5 +13,7 @@ public class MessageConstant {
     public static final String USER_NOT_LOGIN = "用户未登录";
     public static final String LOGIN_FAILED = "登录失败";
     public static final String EMAIL_ALREADY_REGISTERED = "邮箱已注册";
+    public static final String OLD_PASSWORD_ERROR = "旧密码错误";
+    public static final String PASSWORD_CHANGE_SUCCESS = "密码修改成功";
 
 }

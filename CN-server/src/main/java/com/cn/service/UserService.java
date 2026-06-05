@@ -1,5 +1,6 @@
 package com.cn.service;
 
+import com.cn.DTO.ChangePasswordDTO;
 import com.cn.DTO.LoginDTO;
 import com.cn.VO.LoginVO;
 
@@ -12,6 +13,14 @@ public interface UserService {
      * @return {@link LoginVO}
      */
     LoginVO login(LoginDTO loginDTO);
+
+    /**
+     * 修改密码
+     *
+     * @param userId   用户ID（从 JWT Token 中获取）
+     * @param passwordDTO 密码信息（包含旧密码和新密码）
+     */
+    void changePassword(Long userId, ChangePasswordDTO passwordDTO);
 
     /**
      * 注册用户
