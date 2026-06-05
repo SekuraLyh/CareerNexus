@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import springfox.documentation.oas.annotations.EnableOpenApi;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -20,6 +18,8 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.oas.annotations.EnableOpenApi;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 
 import java.util.List;
 
@@ -36,19 +36,29 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     private JwtTokenInterceptor jwtTokenInterceptor;
 
     /**
-     * 注册自定义拦截器
+     * 注册 JWT 令牌校验拦截器
+     * <p>
+     * 拦截策略：除登录、注册、健康检查、Swagger 文档外，所有请求都必须携带有效 Token
      */
     @Override
     protected void addInterceptors(InterceptorRegistry registry) {
-        log.info("开始注册自定义拦截器...");
-        // 管理端接口拦截（排除登录接口）
+        log.info("注册 JWT 拦截器...");
         registry.addInterceptor(jwtTokenInterceptor)
-                .addPathPatterns("/admin/**")
-                .excludePathPatterns("/admin/health");
-        // 用户端接口拦截（按需扩展）
-        // registry.addInterceptor(jwtTokenUserInterceptor)
-        //         .addPathPatterns("/user/**")
-        //         .excludePathPatterns("/user/user/login");
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/auth/login",                 // 登录
+                        "/auth/register/**",           // 注册
+                        "/admin/health",               // 健康检查（首页）
+                        // ===== Swagger / Knife4j =====
+                        "/doc.html",
+                        "/webjars/**",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/favicon.ico",
+                        "/error"
+                );
     }
 
     /**
@@ -88,19 +98,21 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .groupName("用户端接口")
                 .apiInfo(apiInfo)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.cn.controller.user"))
+                .apis(RequestHandlerSelectors.basePackage("com.cn.controller.auth"))
                 .paths(PathSelectors.any())
                 .build();
     }
 
     /**
-     * 设置静态资源映射（Knife4j 文档页面）
+     * 设置静态资源映射（Knife4j / Swagger 文档页面）
      */
     @Override
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
         log.info("开始进行静态资源映射...");
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+        registry.addResourceHandler("/swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/swagger-ui/**").addResourceLocations("classpath:/META-INF/resources/webjars/springfox-swagger-ui/");
     }
 
     /**

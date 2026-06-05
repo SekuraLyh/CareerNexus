@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Schema(description = "求职者登录响应")
-public class JobSeekerLoginVO {
+public class LoginVO {
 
     @Schema(description = "JWT 令牌", example = "eyJhbGciOiJIUzI1NiJ9...")
     private String token;
@@ -16,7 +16,7 @@ public class JobSeekerLoginVO {
     @Schema(description = "用户信息")
     private UserInfo user;
 
-    public JobSeekerLoginVO(String token, UserInfo user) {
+    public LoginVO(String token, UserInfo user) {
         this.token = token;
         this.user = user;
     }

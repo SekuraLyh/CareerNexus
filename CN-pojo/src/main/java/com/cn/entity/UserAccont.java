@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class JobSeeker {
+public class UserAccont {
     private Long id;
     private String username;
     private String password;

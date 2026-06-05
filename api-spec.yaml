@@ -661,7 +661,7 @@ paths:
             系统概览数据。
             - `code: 1` — 成功，`data` 为 SystemOverview
 
-  /auth/users:
+  /admin/users:
     get:
       tags: [Admin]
       summary: (管理员) 获取用户列表
@@ -695,7 +695,7 @@ paths:
             用户列表。
             - `code: 1` — 成功，`data` 为 PaginatedResult<User>
 
-  /auth/users/{userId}/status:
+  /admin/users/{userId}/status:
     put:
       tags: [Admin]
       summary: (管理员) 启用/禁用用户

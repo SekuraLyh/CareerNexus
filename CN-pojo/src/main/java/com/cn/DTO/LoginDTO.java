@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @ApiModel("用户登录请求")
-public class JobSeekerLoginDTO {
+public class LoginDTO {
 
     @ApiModelProperty(value = "用户名", required = true, example = "zhangsan")
     private String username;

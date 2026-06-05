@@ -1,4 +1,4 @@
-package com.cn.controller.admin;
+package com.cn.controller.auth;
 
 import com.cn.result.Result;
 import io.swagger.annotations.Api;
