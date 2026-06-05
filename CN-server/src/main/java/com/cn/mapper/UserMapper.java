@@ -26,4 +26,7 @@ public interface UserMapper {
 
     @Update("update users set password = #{password} where id = #{id}")
     void updatePassword(Long id, String password);
+
+    @Update("update users set status = #{status} where id = #{id}")
+    void updateStatus(Long id, String status);
 }

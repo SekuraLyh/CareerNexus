@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static com.cn.constant.MessageConstant.*;
 import static com.cn.constant.StatusConstant.ACTIVE;
+import static com.cn.constant.StatusConstant.INACTIVE;
 
 /**
  * 通用用户服务实现类
@@ -145,7 +146,23 @@ public class UserServiceImpl implements UserService {
         userMapper.insert(user);
         
         log.info("{} 注册成功: {}", userType, username);
-        
+
         return user.getId();
+    }
+
+    /**
+     * 注销账号（软删除，状态改为 INACTIVE）
+     *
+     * @param userId 用户ID
+     */
+    @Override
+    public void deactivateAccount(Long userId) {
+        UserAccont user = userMapper.getById(userId);
+        if (user == null) {
+            throw new BusinessException(404, ACCOUNT_NOT_FOUND);
+        }
+
+        userMapper.updateStatus(userId, INACTIVE);
+        log.info("用户注销账号成功: userId={}, username={}", userId, user.getUsername());
     }
 }

@@ -34,4 +34,11 @@ public interface UserService {
      */
     Long registerUser(String username, String password, String email, String phone, String userType);
 
+    /**
+     * 注销账号（软删除，状态改为 INACTIVE）
+     *
+     * @param userId 用户ID
+     */
+    void deactivateAccount(Long userId);
+
 }

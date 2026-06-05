@@ -97,6 +97,26 @@ public class AuthController {
     }
 
     /**
+     * 注销账号（软删除，状态改为 INACTIVE）
+     *
+     * @return {@link Result}
+     */
+    @PostMapping("/account")
+    @Operation(summary = "注销账号")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "账号已注销"),
+            @ApiResponse(responseCode = "401", description = "未登录或Token过期")
+    })
+    public Result deactivateAccount() {
+        Long userId = BaseContext.getCurrentId();
+        log.info("用户注销账号: userId={}", userId);
+
+        userService.deactivateAccount(userId);
+
+        return Result.success("账号已注销");
+    }
+
+    /**
      * 注册企业
      *
      * @param registerEnterpriseDTO 注册企业 DTO
