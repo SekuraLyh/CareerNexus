@@ -13,6 +13,12 @@ info:
     ```
     Authorization: Bearer <token>
     ```
+
+    **统一响应格式**: 所有接口均返回 HTTP 200，业务结果由 `code` 字段区分：
+    - `code: 1` — 成功，数据在 `data` 字段
+    - `code: 0` — 失败，错误信息在 `msg` 字段
+
+    **分页说明**: 分页接口统一使用 `page`（页码，从 1 开始）和 `size`（每页条数）参数，返回 `PaginatedResult`。
   version: "1.0.0"
   contact:
     name: CareerNexus Dev Team
@@ -26,10 +32,12 @@ servers:
 tags:
   - name: Auth
     description: 系统管理 — 用户注册、登录、注销、修改密码
+  - name: Admin
+    description: 管理后台 — 仪表盘、用户管理、系统统计
   - name: Profile
     description: 档案管理 — 用户档案的建立、修改、保存、查询
   - name: Jobs
-    description: 职位管理 — 企业发布/管理职位，职位详情
+    description: 职位管理 — 企业发布/管理职位，职位浏览与详情
   - name: Search
     description: 信息查询 — 模糊查询职位和求职者
   - name: Subscription
@@ -54,16 +62,20 @@ components:
     # --- 通用 ---
     ApiResponse:
       type: object
+      required: [code]
       properties:
         code:
           type: integer
-          description: 业务状态码
-        message:
+          description: |
+            业务状态码。
+            **1** — 成功，数据在 `data` 字段
+            **0** — 失败，错误信息在 `msg` 字段
+          enum: [1, 0]
+        msg:
           type: string
-          description: 提示信息
+          description: 提示信息（失败时包含错误原因）
         data:
-          description: 响应数据
-      required: [code, message]
+          description: 响应数据（成功时返回）
 
     PaginatedResult:
       type: object
@@ -467,6 +479,39 @@ components:
         content:
           type: string
 
+    # --- Admin 仪表盘 ---
+    DashboardStats:
+      type: object
+      properties:
+        jobCount:
+          type: integer
+          description: 职位总数
+        reportCount:
+          type: integer
+          description: 行业报告总数
+        postCount:
+          type: integer
+          description: 论坛帖子总数
+        userCount:
+          type: integer
+          description: 注册用户总数
+
+    SystemOverview:
+      type: object
+      properties:
+        jobsOpen:
+          type: integer
+          description: 开放中的职位数
+        jobsClosed:
+          type: integer
+          description: 已关闭的职位数
+        reportsGenerated:
+          type: integer
+          description: 本月生成报告数
+        postsThisMonth:
+          type: integer
+          description: 本月新增帖子数
+
 # ============================================================
 # API 路径定义
 # ============================================================
@@ -486,18 +531,11 @@ paths:
             schema:
               $ref: '#/components/schemas/RegisterJobSeekerRequest'
       responses:
-        '201':
-          description: 注册成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - properties:
-                      data:
-                        $ref: '#/components/schemas/User'
-        '409':
-          description: 用户名或邮箱已存在
+        '200':
+          description: |
+            注册结果。
+            - `code: 1` — 注册成功，`data` 为 User 对象
+            - `code: 0` — 用户名或邮箱已存在
 
   /auth/register/enterprise:
     post:
@@ -511,18 +549,11 @@ paths:
             schema:
               $ref: '#/components/schemas/RegisterEnterpriseRequest'
       responses:
-        '201':
-          description: 注册成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - properties:
-                      data:
-                        $ref: '#/components/schemas/User'
-        '409':
-          description: 用户名或邮箱已存在
+        '200':
+          description: |
+            注册结果。
+            - `code: 1` — 注册成功，`data` 为 User 对象
+            - `code: 0` — 用户名或邮箱已存在
 
   /auth/login:
     post:
@@ -537,22 +568,15 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: 登录成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - properties:
-                      data:
-                        $ref: '#/components/schemas/LoginResponse'
-        '401':
-          description: 用户名或密码错误
+          description: |
+            登录结果。
+            - `code: 1` — 登录成功，`data` 为 LoginResponse（含 token 和 user）
+            - `code: 0` — 用户名或密码错误
 
   /auth/logout:
     post:
       tags: [Auth]
-      summary: 用户注销
+      summary: 用户注销（服务端可选实现，前端已做客户端清除）
       operationId: logout
       security:
         - BearerAuth: []
@@ -569,17 +593,10 @@ paths:
         - BearerAuth: []
       responses:
         '200':
-          description: 成功
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - properties:
-                      data:
-                        $ref: '#/components/schemas/User'
-        '401':
-          description: Token 无效或已过期
+          description: |
+            查询结果。
+            - `code: 1` — 成功，`data` 为 User 对象
+            - `code: 0` — Token 无效或已过期
 
   /auth/password:
     put:
@@ -596,9 +613,10 @@ paths:
               $ref: '#/components/schemas/ChangePasswordRequest'
       responses:
         '200':
-          description: 修改成功
-        '400':
-          description: 旧密码错误
+          description: |
+            修改结果。
+            - `code: 1` — 修改成功
+            - `code: 0` — 旧密码错误
 
   /auth/account:
     delete:
@@ -609,11 +627,43 @@ paths:
         - BearerAuth: []
       responses:
         '200':
-          description: 账号已注销
+          description: |
+            注销结果。
+            - `code: 1` — 账号已注销
+            - `code: 0` — 操作失败
+
+  # ========================
+  # 2. 管理后台 /api/admin
+  # ========================
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: (管理员) 获取仪表盘统计数据
+      operationId: getDashboardStats
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: |
+            统计数据。
+            - `code: 1` — 成功，`data` 为 DashboardStats
+
+  /admin/overview:
+    get:
+      tags: [Admin]
+      summary: (管理员) 获取系统概览
+      operationId: getSystemOverview
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: |
+            系统概览数据。
+            - `code: 1` — 成功，`data` 为 SystemOverview
 
   /auth/users:
     get:
-      tags: [Auth]
+      tags: [Admin]
       summary: (管理员) 获取用户列表
       operationId: listUsers
       security:
@@ -641,11 +691,13 @@ paths:
             enum: [ACTIVE, INACTIVE]
       responses:
         '200':
-          description: 成功
+          description: |
+            用户列表。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<User>
 
   /auth/users/{userId}/status:
     put:
-      tags: [Auth]
+      tags: [Admin]
       summary: (管理员) 启用/禁用用户
       operationId: updateUserStatus
       security:
@@ -669,10 +721,13 @@ paths:
                   enum: [ACTIVE, INACTIVE]
       responses:
         '200':
-          description: 状态更新成功
+          description: |
+            操作结果。
+            - `code: 1` — 状态更新成功
+            - `code: 0` — 操作失败
 
   # ========================
-  # 2. 档案管理 /api/profiles
+  # 3. 档案管理 /api/profiles
   # ========================
   /profiles/job-seeker:
     put:
@@ -689,7 +744,9 @@ paths:
               $ref: '#/components/schemas/JobSeekerProfile'
       responses:
         '200':
-          description: 保存成功
+          description: |
+            保存结果。
+            - `code: 1` — 保存成功，`data` 为 JobSeekerProfile
 
   /profiles/enterprise:
     put:
@@ -706,7 +763,9 @@ paths:
               $ref: '#/components/schemas/EnterpriseProfile'
       responses:
         '200':
-          description: 保存成功
+          description: |
+            保存结果。
+            - `code: 1` — 保存成功，`data` 为 EnterpriseProfile
 
   /profiles/me:
     get:
@@ -717,7 +776,10 @@ paths:
         - BearerAuth: []
       responses:
         '200':
-          description: 成功
+          description: |
+            查询结果。
+            - `code: 1` — 成功，`data` 为 JobSeekerProfile 或 EnterpriseProfile（根据用户类型）
+            - `code: 0` — 档案不存在
 
   /profiles/user/{userId}:
     get:
@@ -732,9 +794,10 @@ paths:
             type: integer
       responses:
         '200':
-          description: 成功
-        '404':
-          description: 档案不存在
+          description: |
+            查询结果。
+            - `code: 1` — 成功，`data` 为 JobSeekerProfile 或 EnterpriseProfile
+            - `code: 0` — 档案不存在
 
   /profiles/resume/upload:
     post:
@@ -757,12 +820,62 @@ paths:
                   description: PDF/DOC/DOCX，最大 10MB
       responses:
         '200':
-          description: 上传成功
+          description: |
+            上传结果。
+            - `code: 1` — 上传成功，`data` 为 `{ url: string }`
+            - `code: 0` — 上传失败
 
   # ========================
-  # 3. 职位管理 /api/jobs
+  # 4. 职位管理 /api/jobs
   # ========================
   /jobs:
+    get:
+      tags: [Jobs]
+      summary: 获取职位列表（浏览 / 最新职位）
+      description: |
+        按条件分页查询职位。所有参数可选，空参数返回最新职位。
+        求职者浏览首页最新职位时调用。
+      operationId: listJobs
+      parameters:
+        - name: keyword
+          in: query
+          description: 关键词（匹配标题和描述）
+          schema:
+            type: string
+        - name: major
+          in: query
+          schema:
+            type: string
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: minSalary
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: 默认只返回 OPEN 的职位
+          schema:
+            type: string
+            enum: [OPEN, CLOSED]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: |
+            职位列表。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<JobPosting>
+
     post:
       tags: [Jobs]
       summary: (企业) 发布职位
@@ -776,10 +889,11 @@ paths:
             schema:
               $ref: '#/components/schemas/JobPostingRequest'
       responses:
-        '201':
-          description: 发布成功
-        '403':
-          description: 仅企业用户可发布职位
+        '200':
+          description: |
+            发布结果。
+            - `code: 1` — 发布成功，`data` 为 JobPosting
+            - `code: 0` — 仅企业用户可发布职位
 
   /jobs/{jobId}:
     get:
@@ -794,12 +908,13 @@ paths:
             type: integer
       responses:
         '200':
-          description: 成功
-        '404':
-          description: 职位不存在
+          description: |
+            职位详情。
+            - `code: 1` — 成功，`data` 为 JobPosting
+            - `code: 0` — 职位不存在
     put:
       tags: [Jobs]
-      summary: (企业) 更新职位
+      summary: (企业) 更新职位（仅发布者本人）
       operationId: updateJob
       security:
         - BearerAuth: []
@@ -817,10 +932,13 @@ paths:
               $ref: '#/components/schemas/JobPostingRequest'
       responses:
         '200':
-          description: 更新成功
+          description: |
+            更新结果。
+            - `code: 1` — 更新成功，`data` 为 JobPosting
+            - `code: 0` — 无权限或职位不存在
     delete:
       tags: [Jobs]
-      summary: (企业) 删除职位
+      summary: (企业) 删除职位（仅发布者本人或管理员）
       operationId: deleteJob
       security:
         - BearerAuth: []
@@ -832,7 +950,10 @@ paths:
             type: integer
       responses:
         '200':
-          description: 删除成功
+          description: |
+            删除结果。
+            - `code: 1` — 删除成功
+            - `code: 0` — 无权限或职位不存在
 
   /jobs/my:
     get:
@@ -859,10 +980,12 @@ paths:
             enum: [OPEN, CLOSED]
       responses:
         '200':
-          description: 成功
+          description: |
+            我的职位列表。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<JobPosting>
 
   # ========================
-  # 4. 信息查询 /api/search
+  # 5. 信息查询 /api/search
   # ========================
   /search/jobs:
     get:
@@ -920,21 +1043,15 @@ paths:
             default: 20
       responses:
         '200':
-          description: 搜索结果
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - properties:
-                      data:
-                        $ref: '#/components/schemas/PaginatedResult'
+          description: |
+            搜索结果。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<JobPosting>
 
   /search/job-seekers:
     get:
       tags: [Search]
       summary: (企业) 搜索求职者
-      description: 按专业、学历、工作经验、技能搜索求职者档案
+      description: 按专业、学历、工作经验、技能搜索求职者档案。
       operationId: searchJobSeekers
       security:
         - BearerAuth: []
@@ -968,12 +1085,15 @@ paths:
             default: 20
       responses:
         '200':
-          description: 搜索结果
+          description: |
+            搜索结果。
+            - `code: 1` — 成功，`data` 为 PaginatedResult（含 JobSeekerProfile 列表）
 
   /search/stats:
     get:
       tags: [Search]
       summary: 搜索统计（供行业报告使用）
+      description: 搜索统计数据（平均薪资、专业分布等）
       operationId: getSearchStats
       parameters:
         - name: keyword
@@ -989,7 +1109,7 @@ paths:
           description: 统计数据（平均薪资、专业分布等）
 
   # ========================
-  # 5. 信息互动 /api/subscriptions
+  # 6. 信息互动 /api/subscriptions
   # ========================
   /subscriptions:
     get:
@@ -1000,7 +1120,9 @@ paths:
         - BearerAuth: []
       responses:
         '200':
-          description: 成功
+          description: |
+            订阅列表。
+            - `code: 1` — 成功，`data` 为 Subscription[]
     post:
       tags: [Subscription]
       summary: 创建订阅
@@ -1014,8 +1136,10 @@ paths:
             schema:
               $ref: '#/components/schemas/SubscriptionRequest'
       responses:
-        '201':
-          description: 创建成功
+        '200':
+          description: |
+            创建结果。
+            - `code: 1` — 创建成功，`data` 为 Subscription
 
   /subscriptions/{subId}:
     put:
@@ -1038,7 +1162,9 @@ paths:
               $ref: '#/components/schemas/SubscriptionRequest'
       responses:
         '200':
-          description: 更新成功
+          description: |
+            更新结果。
+            - `code: 1` — 更新成功
     delete:
       tags: [Subscription]
       summary: 删除订阅
@@ -1053,7 +1179,9 @@ paths:
             type: integer
       responses:
         '200':
-          description: 删除成功
+          description: |
+            删除结果。
+            - `code: 1` — 删除成功
 
   /subscriptions/{subId}/toggle:
     put:
@@ -1080,7 +1208,9 @@ paths:
                   type: boolean
       responses:
         '200':
-          description: 操作成功
+          description: |
+            操作结果。
+            - `code: 1` — 操作成功
 
   /subscriptions/{subId}/matches:
     get:
@@ -1107,7 +1237,9 @@ paths:
             default: 20
       responses:
         '200':
-          description: 匹配结果
+          description: |
+            匹配结果。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<JobPosting>
 
   /subscriptions/notifications:
     get:
@@ -1134,7 +1266,9 @@ paths:
             type: boolean
       responses:
         '200':
-          description: 通知列表
+          description: |
+            通知列表。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<Notification>
 
   /subscriptions/notifications/{notificationId}/read:
     put:
@@ -1151,7 +1285,9 @@ paths:
             type: integer
       responses:
         '200':
-          description: 标记成功
+          description: |
+            操作结果。
+            - `code: 1` — 标记成功
 
   /subscriptions/notifications/unread-count:
     get:
@@ -1162,10 +1298,12 @@ paths:
         - BearerAuth: []
       responses:
         '200':
-          description: 未读数
+          description: |
+            未读数。
+            - `code: 1` — 成功，`data` 为未读通知数量（number）
 
   # ========================
-  # 6. 行业动态 /api/reports
+  # 7. 行业动态 /api/reports
   # ========================
   /reports:
     get:
@@ -1189,12 +1327,15 @@ paths:
             default: 10
       responses:
         '200':
-          description: 报告列表
+          description: |
+            报告列表。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<IndustryReport>
 
   /reports/generate:
     post:
       tags: [Reports]
       summary: (管理员/系统) 触发生成行业报告
+      description: 触发生成指定行业的分析报告。
       operationId: generateReport
       security:
         - BearerAuth: []
@@ -1215,8 +1356,10 @@ paths:
                   type: string
                   format: date
       responses:
-        '201':
-          description: 生成成功
+        '200':
+          description: |
+            生成结果。
+            - `code: 1` — 生成成功
 
   /reports/{reportId}:
     get:
@@ -1231,9 +1374,10 @@ paths:
             type: integer
       responses:
         '200':
-          description: 报告详情
-        '404':
-          description: 报告不存在
+          description: |
+            报告详情。
+            - `code: 1` — 成功，`data` 为 IndustryReport
+            - `code: 0` — 报告不存在
 
   /reports/salary-trends:
     get:
@@ -1251,17 +1395,9 @@ paths:
             type: string
       responses:
         '200':
-          description: 薪资趋势
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/SalaryTrend'
+          description: |
+            薪资趋势数据。
+            - `code: 1` — 成功，`data` 为 SalaryTrend[]
 
   /reports/demand-distribution:
     get:
@@ -1277,10 +1413,12 @@ paths:
             enum: [MAJOR, LOCATION, EXPERIENCE]
       responses:
         '200':
-          description: 分布数据
+          description: |
+            需求分布数据。
+            - `code: 1` — 成功，`data` 为 DemandDistribution[]
 
   # ========================
-  # 7. 求职论坛 /api/forum
+  # 8. 求职论坛 /api/forum
   # ========================
   /forum/categories:
     get:
@@ -1289,10 +1427,13 @@ paths:
       operationId: getCategories
       responses:
         '200':
-          description: 分类列表
+          description: |
+            分类列表。
+            - `code: 1` — 成功，`data` 为 ForumCategory[]
     post:
       tags: [Forum]
       summary: (管理员) 创建分类
+      description: 创建新的论坛分类。
       operationId: createCategory
       security:
         - BearerAuth: []
@@ -1303,8 +1444,10 @@ paths:
             schema:
               $ref: '#/components/schemas/ForumCategory'
       responses:
-        '201':
-          description: 创建成功
+        '200':
+          description: |
+            创建结果。
+            - `code: 1` — 创建成功
 
   /forum/posts:
     get:
@@ -1339,7 +1482,9 @@ paths:
             default: 20
       responses:
         '200':
-          description: 帖子列表
+          description: |
+            帖子列表。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<ForumPost>
     post:
       tags: [Forum]
       summary: 发布帖子
@@ -1353,8 +1498,10 @@ paths:
             schema:
               $ref: '#/components/schemas/ForumPostRequest'
       responses:
-        '201':
-          description: 发布成功
+        '200':
+          description: |
+            发布结果。
+            - `code: 1` — 发布成功，`data` 为 ForumPost
 
   /forum/posts/my:
     get:
@@ -1376,7 +1523,9 @@ paths:
             default: 20
       responses:
         '200':
-          description: 我的帖子列表
+          description: |
+            我的帖子列表。
+            - `code: 1` — 成功，`data` 为 PaginatedResult<ForumPost>
 
   /forum/posts/{postId}:
     get:
@@ -1391,12 +1540,13 @@ paths:
             type: integer
       responses:
         '200':
-          description: 帖子详情 + 评论
-        '404':
-          description: 帖子不存在
+          description: |
+            帖子详情 + 评论列表。
+            - `code: 1` — 成功，`data` 为 `{ post: ForumPost, comments: ForumComment[] }`
+            - `code: 0` — 帖子不存在
     put:
       tags: [Forum]
-      summary: 编辑帖子（作者本人）
+      summary: 编辑帖子（仅作者本人）
       operationId: updatePost
       security:
         - BearerAuth: []
@@ -1414,7 +1564,10 @@ paths:
               $ref: '#/components/schemas/ForumPostRequest'
       responses:
         '200':
-          description: 编辑成功
+          description: |
+            编辑结果。
+            - `code: 1` — 编辑成功，`data` 为 ForumPost
+            - `code: 0` — 无权限或帖子不存在
     delete:
       tags: [Forum]
       summary: 删除帖子（作者本人或管理员）
@@ -1429,12 +1582,15 @@ paths:
             type: integer
       responses:
         '200':
-          description: 删除成功
+          description: |
+            删除结果。
+            - `code: 1` — 删除成功
+            - `code: 0` — 无权限或帖子不存在
 
   /forum/posts/{postId}/like:
     post:
       tags: [Forum]
-      summary: 点赞帖子
+      summary: 点赞/取消点赞帖子（Toggle 模式）
       operationId: likePost
       security:
         - BearerAuth: []
@@ -1446,7 +1602,9 @@ paths:
             type: integer
       responses:
         '200':
-          description: 点赞成功
+          description: |
+            点赞结果。
+            - `code: 1` — 操作成功
 
   /forum/posts/{postId}/comments:
     post:
@@ -1468,8 +1626,10 @@ paths:
             schema:
               $ref: '#/components/schemas/ForumCommentRequest'
       responses:
-        '201':
-          description: 评论成功
+        '200':
+          description: |
+            评论结果。
+            - `code: 1` — 评论成功，`data` 为 ForumComment
 
   /forum/comments/{commentId}:
     delete:
@@ -1486,10 +1646,13 @@ paths:
             type: integer
       responses:
         '200':
-          description: 删除成功
+          description: |
+            删除结果。
+            - `code: 1` — 删除成功
+            - `code: 0` — 无权限或评论不存在
 
 # ============================================================
-# 全局安全设置
+# 全局安全设置（默认所有接口需要认证；注册/登录除外）
 # ============================================================
 security:
   - BearerAuth: []
