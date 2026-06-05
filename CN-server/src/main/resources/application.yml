@@ -4,14 +4,20 @@ server:
     context-path: /api
 
 spring:
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
   datasource:
-    url: jdbc:mysql://192.168.100.128:3306/CareerNexus?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123
+    druid:
+      driver-class-name: ${cn.datasource.driver-class-name}
+      url: jdbc:mysql://${cn.datasource.host}:${cn.datasource.port}/${cn.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${cn.datasource.username}
+      password: ${cn.datasource.password}
   redis:
-    host: 192.168.100.128
-    port: 6379
-    password: 123321
+    host: ${cn.redis.host}
+    port: ${cn.redis.port}
+    password: ${cn.redis.password}
     lettuce:
       pool:
         max-active: 10
@@ -20,4 +26,33 @@ spring:
         time-between-eviction-runs: 10s
   mvc:
     pathmatch:
-        matching-strategy: ant_path_matcher
+      matching-strategy: ant_path_matcher
+
+mybatis:
+  # mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.cn.entity
+  configuration:
+    # 开启驼峰命名
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      cn:
+        mapper: debug
+        service: info
+        controller: info
+
+cn:
+  jwt:
+    # JWT 签名加密秘钥
+    admin-secret-key: CareerNexus@2026SecretKey!JwtToken
+    # JWT 过期时间（毫秒），默认 12 小时
+    admin-ttl: 43200000
+    # 前端传递过来的令牌名称（Header 名称）
+    admin-token-name: Authorization
+
+    user-secret-key: CareerNexus@2026SecretKey!JwtToken
+    user-ttl: 43200000
+    user-token-name: Authorization

@@ -1,0 +1,13 @@
+cn:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: 192.168.100.128
+    port: 3306
+    database: CareerNexus
+    username: root
+    password: 123
+
+  redis:
+    host: 192.168.100.128
+    port: 6379
+    password: 123321

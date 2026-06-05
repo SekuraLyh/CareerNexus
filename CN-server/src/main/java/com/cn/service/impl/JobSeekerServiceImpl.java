@@ -4,9 +4,11 @@ import com.cn.DTO.JobSeekerLoginDTO;
 import com.cn.VO.JobSeekerLoginVO;
 import com.cn.VO.JobSeekerLoginVO.UserInfo;
 import com.cn.entity.JobSeeker;
+import com.cn.exception.LoginFailedException;
 import com.cn.mapper.JobSeekerMapper;
+import com.cn.properties.JwtProperties;
 import com.cn.service.JobSeekerService;
-import com.cn.utils.JwtUtils;
+import com.cn.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,7 +24,10 @@ public class JobSeekerServiceImpl implements JobSeekerService {
     @Autowired
     private JobSeekerMapper jobSeekerMapper;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(); // 密码编码器
+    @Autowired
+    private JwtProperties jwtProperties;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public JobSeekerLoginVO login(JobSeekerLoginDTO loginDTO) {
@@ -32,7 +37,7 @@ public class JobSeekerServiceImpl implements JobSeekerService {
         JobSeeker jobSeeker = jobSeekerMapper.getByUsername(username);
 
         if (jobSeeker == null || !passwordEncoder.matches(password, jobSeeker.getPassword())) {
-            return null;
+            throw new LoginFailedException("用户名或密码错误");
         }
 
         Map<String, Object> claims = new HashMap<>();
@@ -40,7 +45,11 @@ public class JobSeekerServiceImpl implements JobSeekerService {
         claims.put("username", jobSeeker.getUsername());
         claims.put("userType", jobSeeker.getUserType());
 
-        String token = JwtUtils.generateJwt(claims);
+        String token = JwtUtil.createJWT(
+                jwtProperties.getAdminSecretKey(),
+                jwtProperties.getAdminTtl(),
+                claims
+        );
 
         UserInfo userInfo = new UserInfo(
                 jobSeeker.getId(),
