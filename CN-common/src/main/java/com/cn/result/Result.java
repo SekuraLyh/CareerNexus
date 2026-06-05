@@ -1,4 +1,4 @@
-package com.sky.result;
+package com.cn.result;
 
 import lombok.Data;
 

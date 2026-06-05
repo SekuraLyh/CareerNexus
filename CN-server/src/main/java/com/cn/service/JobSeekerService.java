@@ -1,4 +1,10 @@
-package com.cn.service.impl;
+package com.cn.service;
 
-public class JobSeekerService {
+import com.cn.DTO.JobSeekerLoginDTO;
+import com.cn.VO.JobSeekerLoginVO;
+
+public interface JobSeekerService {
+
+    JobSeekerLoginVO login(JobSeekerLoginDTO loginDTO);
+
 }

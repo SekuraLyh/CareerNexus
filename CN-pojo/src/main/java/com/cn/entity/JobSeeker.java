@@ -1,2 +1,18 @@
-package com.cn.entity;public class JobSeekerService {
+package com.cn.entity;
+
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class JobSeeker {
+    private Long id;
+    private String username;
+    private String password;
+    private String userType;
+    private String email;
+    private String phone;
+    private String status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

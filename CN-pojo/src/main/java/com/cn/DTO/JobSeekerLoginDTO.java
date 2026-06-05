@@ -1,4 +1,9 @@
 package com.cn.DTO;
 
-public class JobSeekerDTO {
+import lombok.Data;
+
+@Data
+public class JobSeekerLoginDTO {
+    private String username;
+    private String password;
 }

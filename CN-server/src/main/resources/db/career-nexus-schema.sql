@@ -20,7 +20,7 @@ USE CareerNexus;
 CREATE TABLE users (
     id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '用户ID',
     username        VARCHAR(20)     NOT NULL                 COMMENT '用户名，3-20字符',
-    password_hash   VARCHAR(255)    NOT NULL                 COMMENT '密码哈希值 (bcrypt)',
+    password   VARCHAR(255)    NOT NULL                 COMMENT '密码',
     user_type       ENUM('JOB_SEEKER', 'ENTERPRISE', 'ADMIN')
                                     NOT NULL                 COMMENT '用户类型：求职者/企业/管理员',
     email           VARCHAR(100)    NOT NULL                 COMMENT '邮箱',
@@ -342,5 +342,5 @@ INSERT INTO forum_categories (name, description) VALUES
 -- 初始化数据 — 管理员账号
 -- 密码: admin123 (bcrypt加密，实际部署时请替换为真实hash)
 -- =============================================================================
-INSERT INTO users (username, password_hash, user_type, email, status) VALUES
-    ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', 'ADMIN', 'admin@careernexus.com', 'ACTIVE');
+INSERT INTO users (username, password, user_type, email, status) VALUES
+    ('admin', '$2a$10$tEX0ontUusB6OWUHOygBd.bxVlTrjOvkhRAS811.nwe6BNmiMbS4K', 'ADMIN', 'admin@careernexus.com', 'ACTIVE');
