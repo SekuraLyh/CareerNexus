@@ -3,6 +3,7 @@ package com.cn.service;
 import com.cn.DTO.ChangePasswordDTO;
 import com.cn.DTO.LoginDTO;
 import com.cn.VO.LoginVO;
+import com.cn.entity.UserAccount;
 
 public interface UserService {
 
@@ -40,5 +41,14 @@ public interface UserService {
      * @param userId 用户ID
      */
     void deactivateAccount(Long userId);
+
+
+    /**
+     * 根据用户ID获取用户信息
+     *
+     * @param userId 用户ID
+     * @return {@link UserAccount}
+     */
+    UserAccount getUserById(Long userId);
 
 }

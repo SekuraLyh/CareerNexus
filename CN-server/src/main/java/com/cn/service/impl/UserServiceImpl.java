@@ -4,7 +4,7 @@ import com.cn.DTO.ChangePasswordDTO;
 import com.cn.DTO.LoginDTO;
 import com.cn.VO.LoginVO;
 import com.cn.VO.LoginVO.UserInfo;
-import com.cn.entity.UserAccont;
+import com.cn.entity.UserAccount;
 import com.cn.exception.BusinessException;
 import com.cn.exception.LoginFailedException;
 import com.cn.mapper.UserMapper;
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         String password = loginDTO.getPassword();
         
         // 查询用户
-        UserAccont user = userMapper.getByUsername(username);
+        UserAccount user = userMapper.getByUsername(username);
         
         // 验证用户和密码
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(Long userId, ChangePasswordDTO passwordDTO) {
         // 查询用户
-        UserAccont user = userMapper.getById(userId);
+        UserAccount user = userMapper.getById(userId);
         if (user == null) {
             throw new BusinessException(404, ACCOUNT_NOT_FOUND);
         }
@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // 创建用户记录
-        UserAccont user = new UserAccont();
+        UserAccount user = new UserAccount();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void deactivateAccount(Long userId) {
-        UserAccont user = userMapper.getById(userId);
+        UserAccount user = userMapper.getById(userId);
         if (user == null) {
             throw new BusinessException(404, ACCOUNT_NOT_FOUND);
         }
@@ -165,4 +165,10 @@ public class UserServiceImpl implements UserService {
         userMapper.updateStatus(userId, INACTIVE);
         log.info("用户注销账号成功: userId={}, username={}", userId, user.getUsername());
     }
+
+    @Override
+    public UserAccount getUserById(Long userId) {
+        return userMapper.getById(userId);
+    }
+
 }

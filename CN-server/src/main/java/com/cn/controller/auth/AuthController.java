@@ -6,6 +6,7 @@ import com.cn.DTO.RegisterEnterpriseDTO;
 import com.cn.DTO.RegisterJobSeekerDTO;
 import com.cn.VO.LoginVO;
 import com.cn.context.BaseContext;
+import com.cn.entity.UserAccount;
 import com.cn.result.Result;
 import com.cn.service.EnterpriseService;
 import com.cn.service.JobSeekerService;
@@ -16,11 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
@@ -38,11 +35,11 @@ public class AuthController {
     private EnterpriseService enterpriseService;
 
 
-
     /**
+     * 登录
      *
-     * @param loginDTO 登录信息
-     * @return {@link Result< LoginVO >}
+     * @param loginDTO 登录 DTO
+     * @return {@link Result<LoginVO>}
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录")
@@ -79,23 +76,6 @@ public class AuthController {
         return Result.success("密码修改成功");
     }
 
-
-    /**
-     * 注册求职者
-     *
-     * @param registerJobSeekerDTO 注册求职者 DTO
-     * @return {@link Result}
-     */
-    @PostMapping("/register/job-seeker")
-    @Operation(summary = "注册求职者")
-
-    public Result registerJobSeeker(@RequestBody RegisterJobSeekerDTO registerJobSeekerDTO) {
-
-        jobSeekerService.registerJobSeeker(registerJobSeekerDTO);
-
-        return Result.success("注册成功");
-    }
-
     /**
      * 注销账号（软删除，状态改为 INACTIVE）
      *
@@ -117,6 +97,24 @@ public class AuthController {
     }
 
     /**
+     * 注册求职者
+     *
+     * @param registerJobSeekerDTO 注册求职者 DTO
+     * @return {@link Result}
+     */
+    @PostMapping("/register/job-seeker")
+    @Operation(summary = "注册求职者")
+
+    public Result registerJobSeeker(@RequestBody RegisterJobSeekerDTO registerJobSeekerDTO) {
+
+        jobSeekerService.registerJobSeeker(registerJobSeekerDTO);
+
+        return Result.success("注册成功");
+    }
+
+
+
+    /**
      * 注册企业
      *
      * @param registerEnterpriseDTO 注册企业 DTO
@@ -129,5 +127,13 @@ public class AuthController {
         enterpriseService.registerEnterprise(registerEnterpriseDTO);
 
         return Result.success("注册成功");
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "获取当前用户信息")
+    public Result<UserAccount> getCurrentUser() {
+        Long userId = BaseContext.getCurrentId();
+        UserAccount user = userService.getUserById(userId);
+        return Result.success(user);
     }
 }
