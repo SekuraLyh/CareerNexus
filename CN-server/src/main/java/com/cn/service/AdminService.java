@@ -1,7 +1,24 @@
 package com.cn.service;
 
 import com.cn.VO.DashedBorderVO;
+import com.cn.VO.SystemOverviewVO;
+import com.cn.VO.UserVO;
+import com.cn.result.PageResult;
 
 public interface AdminService {
     DashedBorderVO getDashedBorder();
+
+    SystemOverviewVO getSystemOverview();
+
+    /**
+     * 分页查询用户列表
+     *
+     * @param page     页码（从1开始）
+     * @param size     每页大小
+     * @param userType 用户类型（可选）
+     * @param status   账号状态（可选）
+     * @param keyword  搜索关键词（可选，支持用户名/邮箱/手机号）
+     * @return 分页结果
+     */
+    PageResult<UserVO> getUsers(Integer page, Integer size, String userType, String status, String keyword);
 }

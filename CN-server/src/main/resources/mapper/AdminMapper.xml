@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.mapper.AdminMapper">
+    <!-- 统计职位数量 -->
+    <select id="countJobs" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM job_postings WHERE status = 'OPEN'
+    </select>
+
+    <!-- 统计行业报告数量 -->
+    <select id="countReports" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM industry_reports
+    </select>
+
+    <!-- 统计论坛帖子数量（排除已删除的） -->
+    <select id="countPosts" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM forum_posts WHERE is_deleted = 0
+    </select>
+
+    <!-- 统计用户数量（排除已注销的） -->
+    <select id="countUsers" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM users WHERE status = 'ACTIVE'
+    </select>
+
+    <!-- 获取职位数量（已发布的） -->
+    <select id="countJobsOpen" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM job_postings WHERE status = 'OPEN'
+    </select>
+
+    <!-- 获取职位数量（已关闭的） -->
+    <select id="countJobsClosed" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM job_postings WHERE status = 'CLOSED'
+    </select>
+
+    <!-- 获取本月生成报告数 -->
+    <select id="countReportsGenerated" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM industry_reports 
+        WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+    </select>
+
+    <!-- 获取本月发帖数 -->
+    <select id="countPostsThisMonth" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM forum_posts 
+        WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+    </select>
+
+    <!-- 查询所有用户列表（按创建时间降序） -->
+    <select id="selectAllUsers" resultType="com.cn.entity.UserAccount">
+        SELECT * FROM users ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据用户类型查询用户列表 -->
+    <select id="selectUsersByType" resultType="com.cn.entity.UserAccount">
+        SELECT * FROM users 
+        WHERE user_type = #{userType} 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据状态查询用户列表 -->
+    <select id="selectUsersByStatus" resultType="com.cn.entity.UserAccount">
+        SELECT * FROM users 
+        WHERE status = #{status} 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 关键词搜索用户（用户名、邮箱、手机号） -->
+    <select id="searchUsersByKeyword" resultType="com.cn.entity.UserAccount">
+        SELECT * FROM users 
+        WHERE username LIKE CONCAT('%', #{keyword}, '%') 
+           OR email LIKE CONCAT('%', #{keyword}, '%') 
+           OR phone LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 组合条件查询用户（动态 SQL） -->
+    <select id="selectUsersByConditions" resultType="com.cn.entity.UserAccount">
+        SELECT * FROM users
+        <where>
+            <if test="userType != null and userType != ''">
+                AND user_type = #{userType}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    username LIKE CONCAT('%', #{keyword}, '%') 
+                    OR email LIKE CONCAT('%', #{keyword}, '%') 
+                    OR phone LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>
