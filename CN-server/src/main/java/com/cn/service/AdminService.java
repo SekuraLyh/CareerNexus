@@ -21,4 +21,14 @@ public interface AdminService {
      * @return 分页结果
      */
     PageResult<UserVO> getUsers(Integer page, Integer size, String userType, String status, String keyword);
+
+    /**
+     * 获取用户详情
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    UserVO getUserDetail(Long userId);
+
+    void updateUserStatus(Long userId, String status);
 }

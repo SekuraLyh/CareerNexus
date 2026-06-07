@@ -4,6 +4,7 @@ import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
 import com.cn.entity.UserAccount;
+import com.cn.exception.BusinessException;
 import com.cn.mapper.AdminMapper;
 import com.cn.result.PageResult;
 import com.cn.service.AdminService;
@@ -13,7 +14,15 @@ import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.cn.constant.MessageConstant.ACCOUNT_NOT_FOUND;
+import static com.cn.constant.StatusConstant.ACTIVE;
+import static com.cn.constant.StatusConstant.INACTIVE;
 
 @Service
 @Slf4j
@@ -21,7 +30,7 @@ public class AdminServiceImpl implements AdminService {
     
     @Autowired
     private AdminMapper adminMapper;
-    
+
     @Override
     public DashedBorderVO getDashedBorder() {
         log.info("获取管理员仪表盘统计数据");
@@ -39,6 +48,11 @@ public class AdminServiceImpl implements AdminService {
         return vo;
     }
 
+    /**
+     * 获取系统概览
+     *
+     * @return {@link SystemOverviewVO}
+     */
     @Override
     public SystemOverviewVO getSystemOverview() {
         log.info("获取系统概览");
@@ -65,7 +79,7 @@ public class AdminServiceImpl implements AdminService {
         PageHelper.startPage(page, size);
 
         // 2. 执行查询（优先使用组合条件查询，支持灵活筛选）
-        java.util.List<UserAccount> users = adminMapper.selectUsersByConditions(userType, status, keyword);
+        List<UserAccount> users = adminMapper.selectUsersByConditions(userType, status, keyword);
 
         // 3. 封装为 PageInfo（包含总数、总页数等信息）
         PageInfo<UserAccount> pageInfo = new PageInfo<>(users);
@@ -76,6 +90,58 @@ public class AdminServiceImpl implements AdminService {
         log.info("查询完成: total={}, totalPages={}", result.getTotal(), result.getTotalPages());
 
         return result;
+    }
+
+    /**
+     * 获取用户详情
+     *
+     * @param userId 用户ID
+     * @return 用户VO
+     */
+    @Override
+    public UserVO getUserDetail(Long userId) {
+        log.info("获取用户详情: userId={}", userId);
+
+        UserAccount user = adminMapper.selectUserById(userId);
+        if (user == null) {
+            throw new BusinessException(404, ACCOUNT_NOT_FOUND);
+        }
+
+        return convertToUserVO(user);
+    }
+
+    /**
+     * 更新用户状态
+     *
+     * @param userId 用户ID
+     * @param status 状态（ACTIVE / INACTIVE）
+     */
+    @Override
+    public void updateUserStatus(Long userId, String status) {
+        log.info("更新用户状态: userId={}, status={}", userId, status);
+
+        // 1. 验证用户是否存在
+        UserAccount user = adminMapper.selectUserById(userId);
+        if (user == null) {
+            throw new BusinessException(404, ACCOUNT_NOT_FOUND);
+        }
+
+        // 2. 验证状态值是否合法
+        Set<String> validStatuses = new HashSet<>(Arrays.asList(ACTIVE, INACTIVE));
+        if (!validStatuses.contains(status)) {
+            throw new BusinessException(400, "无效的状态值，只支持: ACTIVE, INACTIVE");
+        }
+
+        // 3. 构建更新对象（只设置需要更新的字段）
+        UserAccount updateUser = new UserAccount();
+        updateUser.setId(userId);
+        updateUser.setStatus(status);
+
+        // 4. 执行动态更新（只更新 status 字段）
+        adminMapper.updateUser(updateUser);
+
+        log.info("用户状态更新成功: userId={}, oldStatus={}, newStatus={}",
+                userId, user.getStatus(), status);
     }
 
     /**

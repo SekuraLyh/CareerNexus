@@ -82,4 +82,15 @@ public interface AdminMapper {
             @Param("status") String status,
             @Param("keyword") String keyword
     );
+
+    /**
+     * 根据ID查询用户
+     */
+    UserAccount selectUserById(@Param("userId") Long userId);
+
+    /**
+     * 动态更新用户信息（只更新非空字段）
+     * 适用于所有更新用户的场景
+     */
+    void updateUser(UserAccount user);
 }

@@ -5,7 +5,6 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface UserMapper {
@@ -24,9 +23,17 @@ public interface UserMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insert(UserAccount userAccount);
 
-    @Update("update users set password = #{password} where id = #{id}")
-    void updatePassword(Long id, String password);
+    /**
+     * 更新密码（专用方法）
+     * 也可以使用 AdminMapper.updateUser() 进行通用更新
+     */
+    @org.apache.ibatis.annotations.Update("update users set password = #{password} where id = #{id}")
+    void updatePassword(@org.apache.ibatis.annotations.Param("id") Long id, @org.apache.ibatis.annotations.Param("password") String password);
 
-    @Update("update users set status = #{status} where id = #{id}")
-    void updateStatus(Long id, String status);
+    /**
+     * 更新状态（专用方法）
+     * 也可以使用 AdminMapper.updateUser() 进行通用更新
+     */
+    @org.apache.ibatis.annotations.Update("update users set status = #{status} where id = #{id}")
+    void updateStatus(@org.apache.ibatis.annotations.Param("id") Long id, @org.apache.ibatis.annotations.Param("status") String status);
 }

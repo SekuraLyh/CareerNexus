@@ -1,5 +1,7 @@
 package com.cn.controller.admin;
 
+import com.cn.DTO.UserQueryDTO;
+import com.cn.DTO.UserStatusRequestDTO;
 import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
@@ -8,13 +10,13 @@ import com.cn.result.Result;
 import com.cn.service.AdminService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin")
@@ -38,25 +40,35 @@ public class AdminController {
         return Result.success(adminService.getSystemOverview());
     }
 
+
+    @Operation(summary = "获取用户", method = "GET")
     @GetMapping("/users")
-    @ApiOperation("分页查询用户列表")
-    public Result<PageResult<UserVO>> getUsers(
-            @Parameter(description = "页码，从1开始", example = "1")
-            @RequestParam(defaultValue = "1") Integer page,
-            
-            @Parameter(description = "每页大小", example = "10")
-            @RequestParam(defaultValue = "10") Integer size,
-            
-            @Parameter(description = "用户类型（可选）", example = "JOB_SEEKER")
-            @RequestParam(required = false) String userType,
-            
-            @Parameter(description = "账号状态（可选）", example = "ACTIVE")
-            @RequestParam(required = false) String status,
-            
-            @Parameter(description = "搜索关键词（可选，支持用户名/邮箱/手机号）", example = "张三")
-            @RequestParam(required = false) String keyword) {
+    public Result<PageResult<UserVO>> getUsers(UserQueryDTO userQuery) {
         
-        PageResult<UserVO> result = adminService.getUsers(page, size, userType, status, keyword);
+        PageResult<UserVO> result = adminService.getUsers(
+                userQuery.getPage(),
+                userQuery.getSize(),
+                userQuery.getUserType(),
+                userQuery.getStatus(),
+                userQuery.getKeyword()
+        );
         return Result.success(result);
+    }
+
+
+    @GetMapping("/users/{userId}")
+    @ApiOperation("获取用户详情")
+    public Result<UserVO> getUserDetail(@PathVariable Long userId) {
+        log.info("获取用户详情: userId={}", userId);
+        UserVO userVO = adminService.getUserDetail(userId);
+        return Result.success(userVO);
+    }
+
+    @PutMapping("/users/{userId}")
+    @ApiOperation("启用/禁用用户")
+    public Result updateUserStatus(@PathVariable Long userId, @RequestBody UserStatusRequestDTO request) {
+        log.info("更新用户状态: userId={}, status={}", userId, request.getStatus());
+        adminService.updateUserStatus(userId, request.getStatus());
+        return Result.success();
     }
 }
