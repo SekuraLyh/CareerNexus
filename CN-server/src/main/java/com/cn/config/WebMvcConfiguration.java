@@ -84,7 +84,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .securitySchemes(Collections.singletonList(apiKey()))
                 .securityContexts(Collections.singletonList(securityContext()))
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.cn.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.cn.controller.admin"))
                 .paths(PathSelectors.any())
                 .build();
     }

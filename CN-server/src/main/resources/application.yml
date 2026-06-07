@@ -43,13 +43,15 @@ logging:
         mapper: debug
         service: info
         controller: info
+    # 抑制 Springfox/Knife4j 的 ObjectMapper 警告
+    springfox.documentation.spring.web.plugins.CachingModelPropertiesProvider: OFF
 
 cn:
   jwt:
     # JWT 签名加密秘钥
     admin-secret-key: CareerNexus@2026SecretKey!JwtToken
-    # JWT 过期时间（毫秒），默认 12 小时
-    admin-ttl: 43200000
+    # JWT 过期时间（毫秒） 默认 30 天
+    admin-ttl: 4320000000
     # 前端传递过来的令牌名称（Header 名称）
     admin-token-name: Authorization
 

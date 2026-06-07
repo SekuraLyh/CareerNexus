@@ -646,6 +646,43 @@
       }
     },
     "/profiles/job-seeker": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "获取当前求职者档案",
+        "description": "根据 Token 返回当前求职用户的档案信息。仅 JOB_SEEKER 角色可操作。",
+        "operationId": "getJobSeekerProfile",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "success — code: 1，data 为 JobSeekerProfile；code: 0 — 档案不存在",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ResultJobSeekerProfile" },
+                "example": {
+                  "code": 1,
+                  "msg": null,
+                  "data": {
+                    "id": 1,
+                    "userId": 1,
+                    "realName": "张三",
+                    "gender": "MALE",
+                    "birthDate": "1998-06-15",
+                    "major": "计算机科学与技术",
+                    "education": "BACHELOR",
+                    "school": "清华大学",
+                    "graduationYear": 2022,
+                    "workExperience": 3,
+                    "expectedSalary": 15000,
+                    "skills": "Java,Spring Boot,Vue.js,MySQL",
+                    "selfDescription": "3年全栈开发经验，熟悉Java和Vue生态",
+                    "resumeUrl": "/uploads/resumes/1/简历.pdf"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "tags": ["Profile"],
         "summary": "创建或更新求职者档案",
@@ -693,6 +730,39 @@
       }
     },
     "/profiles/enterprise": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "获取当前企业档案",
+        "description": "根据 Token 返回当前企业用户的档案信息。仅 ENTERPRISE 角色可操作。",
+        "operationId": "getEnterpriseProfile",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "success — code: 1，data 为 EnterpriseProfile；code: 0 — 档案不存在",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ResultEnterpriseProfile" },
+                "example": {
+                  "code": 1,
+                  "msg": null,
+                  "data": {
+                    "id": 1,
+                    "userId": 2,
+                    "companyName": "科技创新有限公司",
+                    "industry": "互联网/IT",
+                    "companySize": "100-499人",
+                    "companyDescription": "专注于企业级SaaS解决方案",
+                    "contactPerson": "李四",
+                    "contactPhone": "13900139000",
+                    "address": "北京市海淀区中关村大街1号",
+                    "website": "https://www.techcorp.com"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "tags": ["Profile"],
         "summary": "创建或更新企业档案",
@@ -727,45 +797,6 @@
                     "contactPhone": "13900139000",
                     "address": "北京市海淀区中关村大街1号",
                     "website": "https://www.techcorp.com"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/profiles/me": {
-      "get": {
-        "tags": ["Profile"],
-        "summary": "获取当前用户的档案",
-        "description": "根据 Token 中的 userId 返回对应档案（求职者档案或企业档案）。",
-        "operationId": "getMyProfile",
-        "security": [{ "BearerAuth": [] }],
-        "responses": {
-          "200": {
-            "description": "成功 — code: 1，data 为 JobSeekerProfile 或 EnterpriseProfile（根据用户类型）；code: 0 — 档案不存在",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ResultJobSeekerProfile" },
-                "example": {
-                  "code": 1,
-                  "msg": null,
-                  "data": {
-                    "id": 1,
-                    "userId": 1,
-                    "realName": "张三",
-                    "gender": "MALE",
-                    "birthDate": "1998-06-15",
-                    "major": "计算机科学与技术",
-                    "education": "BACHELOR",
-                    "school": "清华大学",
-                    "graduationYear": 2022,
-                    "workExperience": 3,
-                    "expectedSalary": 15000,
-                    "skills": "Java,Spring Boot,Vue.js,MySQL",
-                    "selfDescription": "3年全栈开发经验，熟悉Java和Vue生态",
-                    "resumeUrl": "/uploads/resumes/1/简历.pdf"
                   }
                 }
               }

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cn.mapper.ProfileMapper">
+
+    <!-- 企业档案结果映射 -->
+    <resultMap id="EnterpriseProfileDTOResultMap" type="com.cn.DTO.EnterpriseProfileDTO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="companyName" column="company_name"/>
+        <result property="industry" column="industry"/>
+        <result property="companySize" column="company_size"/>
+        <result property="companyDescription" column="company_description"/>
+        <result property="contactPerson" column="contact_person"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="address" column="address"/>
+        <result property="website" column="website"/>
+    </resultMap>
+
+    <!-- 求职者档案结果映射 -->
+    <resultMap id="JobSeekerProfileDTOResultMap" type="com.cn.DTO.JobSeekerProfileDTO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="realName" column="real_name"/>
+        <result property="gender" column="gender"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="major" column="major"/>
+        <result property="education" column="education"/>
+        <result property="school" column="school"/>
+        <result property="graduationYear" column="graduation_year"/>
+        <result property="workExperience" column="work_experience"/>
+        <result property="expectedSalary" column="expected_salary"/>
+        <result property="skills" column="skills"/>
+        <result property="selfDescription" column="self_description"/>
+        <result property="resumeUrl" column="resume_url"/>
+    </resultMap>
+
+    <!-- ==================== 企业档案相关 SQL ==================== -->
+
+    <!-- 根据用户ID查询企业档案 -->
+    <select id="getEnterpriseProfileById" resultMap="EnterpriseProfileDTOResultMap">
+        SELECT *
+        FROM enterprise_profiles
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 插入企业档案 -->
+    <insert id="insertEnterpriseProfile" parameterType="com.cn.DTO.EnterpriseProfileDTO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO enterprise_profiles (
+            user_id, company_name, industry, company_size,
+            company_description, contact_person, contact_phone, address, website
+        ) VALUES (
+            #{userId}, #{companyName}, #{industry}, #{companySize},
+            #{companyDescription}, #{contactPerson}, #{contactPhone}, #{address}, #{website}
+        )
+    </insert>
+
+    <!-- 根据档案ID更新企业档案（动态SQL） -->
+    <update id="updateEnterpriseProfile" parameterType="com.cn.DTO.EnterpriseProfileDTO">
+        UPDATE enterprise_profiles
+        <set>
+            <if test="companyName != null and companyName != ''">
+                company_name = #{companyName},
+            </if>
+            <if test="industry != null">
+                industry = #{industry},
+            </if>
+            <if test="companySize != null">
+                company_size = #{companySize},
+            </if>
+            <if test="companyDescription != null">
+                company_description = #{companyDescription},
+            </if>
+            <if test="contactPerson != null">
+                contact_person = #{contactPerson},
+            </if>
+            <if test="contactPhone != null">
+                contact_phone = #{contactPhone},
+            </if>
+            <if test="address != null">
+                address = #{address},
+            </if>
+            <if test="website != null">
+                website = #{website},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- ==================== 求职者档案相关 SQL ==================== -->
+
+    <!-- 根据用户ID查询求职者档案 -->
+    <select id="getJobSeekerProfileById" resultMap="JobSeekerProfileDTOResultMap">
+        SELECT *
+        FROM job_seeker_profiles
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 插入求职者档案 -->
+    <insert id="insertJobSeekerProfile" parameterType="com.cn.DTO.JobSeekerProfileDTO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO job_seeker_profiles (
+            user_id, real_name, gender, birth_date, major, education,
+            school, graduation_year, work_experience, expected_salary,
+            skills, self_description, resume_url
+        ) VALUES (
+            #{userId}, #{realName}, #{gender}, #{birthDate}, #{major}, #{education},
+            #{school}, #{graduationYear}, #{workExperience}, #{expectedSalary},
+            #{skills}, #{selfDescription}, #{resumeUrl}
+        )
+    </insert>
+
+    <!-- 根据档案ID更新求职者档案（动态SQL） -->
+    <update id="updateJobSeekerProfile" parameterType="com.cn.DTO.JobSeekerProfileDTO">
+        UPDATE job_seeker_profiles
+        <set>
+            <if test="realName != null and realName != ''">
+                real_name = #{realName},
+            </if>
+            <if test="gender != null">
+                gender = #{gender},
+            </if>
+            <if test="birthDate != null">
+                birth_date = #{birthDate},
+            </if>
+            <if test="major != null">
+                major = #{major},
+            </if>
+            <if test="education != null">
+                education = #{education},
+            </if>
+            <if test="school != null">
+                school = #{school},
+            </if>
+            <if test="graduationYear != null">
+                graduation_year = #{graduationYear},
+            </if>
+            <if test="workExperience != null">
+                work_experience = #{workExperience},
+            </if>
+            <if test="expectedSalary != null">
+                expected_salary = #{expectedSalary},
+            </if>
+            <if test="skills != null">
+                skills = #{skills},
+            </if>
+            <if test="selfDescription != null">
+                self_description = #{selfDescription},
+            </if>
+            <if test="resumeUrl != null">
+                resume_url = #{resumeUrl},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
