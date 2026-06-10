@@ -34,4 +34,12 @@ public interface ProfileService {
      * @return 保存后的求职者档案 DTO
      */
     JobSeekerProfileDTO saveJobSeekerProfile(JobSeekerProfileDTO dto);
+
+    /**
+     * 根据用户 ID 获取公开档案
+     *
+     * @param userId 用户 ID
+     * @return 公开档案 DTO，不存在返回 null
+     */
+    JobSeekerProfileDTO getPublicProfile(Long userId);
 }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.mapper.JobsMapper">
+
+    <select id="selectJosByConditions" resultType="com.cn.entity.JobPosting">
+        SELECT * FROM job_postings
+        <where>
+            status = 'OPEN'
+            <if test="major != null and major != ''">
+                AND major = #{major}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    title LIKE CONCAT('%', #{keyword}, '%')
+                    OR description LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="minSalary != null">
+                AND min_salary >= #{minSalary}
+            </if>
+            <if test="location != null and location != ''">
+                AND location = #{location}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 模糊搜索职位 -->
+    <select id="searchJobs" resultType="com.cn.entity.JobPosting">
+        SELECT jp.*, u.username as enterprise_name
+        FROM job_postings jp
+        LEFT JOIN users u ON jp.enterprise_user_id = u.id
+        <where>
+            jp.status = 'OPEN'
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    jp.title LIKE CONCAT('%', #{keyword}, '%')
+                    OR jp.description LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="major != null and major != ''">
+                AND jp.required_major = #{major}
+            </if>
+            <if test="minExperience != null">
+                AND jp.min_experience >= #{minExperience}
+            </if>
+            <if test="maxExperience != null">
+                AND jp.max_experience &lt;= #{maxExperience}
+            </if>
+            <if test="minSalary != null">
+                AND jp.min_salary >= #{minSalary}
+            </if>
+            <if test="maxSalary != null">
+                AND jp.max_salary &lt;= #{maxSalary}
+            </if>
+            <if test="location != null and location != ''">
+                AND jp.location LIKE CONCAT('%', #{location}, '%')
+            </if>
+        </where>
+        ORDER BY jp.created_at DESC
+    </select>
+
+</mapper>

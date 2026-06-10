@@ -1,7 +1,6 @@
 package com.cn.service.impl;
 
 import com.cn.DTO.RegisterJobSeekerDTO;
-import com.cn.mapper.JobSeekerMapper;
 import com.cn.service.JobSeekerService;
 import com.cn.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +14,6 @@ public class JobSeekerServiceImpl implements JobSeekerService {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private JobSeekerMapper jobSeekerMapper;
 
     @Override
     public void registerJobSeeker(RegisterJobSeekerDTO dto) {

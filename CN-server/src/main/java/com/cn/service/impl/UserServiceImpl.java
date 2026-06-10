@@ -52,12 +52,17 @@ public class UserServiceImpl implements UserService {
         
         // 查询用户
         UserAccount user = userMapper.getByUsername(username);
-        
+
         // 验证用户和密码
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             throw new LoginFailedException(PASSWORD_ERROR);
         }
-        
+
+        //验证状态
+        if (!user.getStatus().equals(ACTIVE)) {
+            throw new LoginFailedException(ACCOUNT_LOCKED);
+        }
+
         // 构建 JWT Token
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());

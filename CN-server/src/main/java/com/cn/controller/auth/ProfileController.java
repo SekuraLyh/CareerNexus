@@ -60,4 +60,17 @@ public class ProfileController {
         JobSeekerProfileDTO saved = profileService.saveJobSeekerProfile(dto);
         return Result.success(saved);
     }
+
+    @GetMapping("/user/{userId}")
+    @ApiOperation("根据用户 ID 获取公开档案")
+    public Result<JobSeekerProfileDTO> getPublicProfile(@PathVariable Long userId) {
+        log.info("根据用户 ID 获取公开档案, userId: {}", userId);
+        JobSeekerProfileDTO profile = profileService.getPublicProfile(userId);
+
+        if (profile == null) {
+            return Result.error("档案不存在");
+        }
+
+        return Result.success(profile);
+    }
 }

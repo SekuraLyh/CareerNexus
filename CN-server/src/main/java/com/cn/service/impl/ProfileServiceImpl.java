@@ -75,4 +75,9 @@ public class ProfileServiceImpl implements ProfileService {
         // 4. 返回最新档案
         return profileMapper.getJobSeekerProfileById(userId);
     }
+
+    @Override
+    public JobSeekerProfileDTO getPublicProfile(Long userId) {
+        return profileMapper.getJobSeekerProfileById(userId);
+    }
 }

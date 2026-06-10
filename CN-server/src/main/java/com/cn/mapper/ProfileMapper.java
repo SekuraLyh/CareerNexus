@@ -5,6 +5,8 @@ import com.cn.DTO.JobSeekerProfileDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface ProfileMapper {
 
@@ -55,4 +57,20 @@ public interface ProfileMapper {
      * @return 影响行数
      */
     int updateJobSeekerProfile(JobSeekerProfileDTO dto);
+
+    /**
+     * 搜索求职者档案
+     *
+     * @param major         专业
+     * @param education     学历
+     * @param minExperience 最低工作年限
+     * @param skills        技能关键词
+     * @return 求职者档案列表
+     */
+    List<JobSeekerProfileDTO> searchJobSeekers(
+            String major,
+            String education,
+            Integer minExperience,
+            String skills
+    );
 }

@@ -62,7 +62,10 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/favicon.ico",
-                        "/error"
+                        "/error",
+                        //公开接口
+                        "/profiles/user/{userId}"  // 根据用户 ID 获取公开档案
+
                 );
     }
 

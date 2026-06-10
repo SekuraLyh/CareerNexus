@@ -154,4 +154,29 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 搜索求职者档案 -->
+    <select id="searchJobSeekers" resultMap="JobSeekerProfileDTOResultMap">
+        SELECT *
+        FROM job_seeker_profiles
+        <where>
+            <if test="major != null and major != ''">
+                AND major LIKE CONCAT('%', #{major}, '%')
+            </if>
+            <if test="education != null and education != ''">
+                AND education = #{education}
+            </if>
+            <if test="minExperience != null">
+                AND work_experience >= #{minExperience}
+            </if>
+            <if test="skills != null and skills != ''">
+                AND (
+                    <foreach collection="skills.split(',')" item="skill" separator="OR">
+                        skills LIKE CONCAT('%', #{skill}, '%')
+                    </foreach>
+                )
+            </if>
+        </where>
+        ORDER BY work_experience DESC, expected_salary DESC
+    </select>
+
 </mapper>
