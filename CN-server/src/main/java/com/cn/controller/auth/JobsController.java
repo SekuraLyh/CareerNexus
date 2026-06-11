@@ -2,6 +2,7 @@ package com.cn.controller.auth;
 
 import com.cn.DTO.JobPostDTO;
 import com.cn.DTO.JobQueryDTO;
+import com.cn.DTO.JobStatusDTO;
 import com.cn.VO.JobPostingVO;
 import com.cn.result.PageResult;
 import com.cn.result.Result;
@@ -9,6 +10,7 @@ import com.cn.service.JobsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,9 +54,24 @@ public class JobsController {
         return Result.success(jobsService.getJobDetail(jobId));
     }
 
-    @PutMapping("/{jobId:}")
+    @PutMapping("/{jobId}")
     @ApiOperation("更新职位信息")
     public Result<JobPostingVO> updateJob(@PathVariable Integer jobId, @RequestBody @Valid JobPostDTO jobPostDTO) {
         return Result.success(jobsService.updateJob(jobId, jobPostDTO));
     }
+
+    @DeleteMapping("/{jobId}")
+    @ApiOperation("删除职位")
+    public Result<Void> deleteJob(@PathVariable Integer jobId) {
+        jobsService.deleteJob(jobId);
+        return Result.success();
+    }
+
+    @PatchMapping("/{jobId}/status")
+    @ApiOperation("更新职位状态（关闭/重新开启）")
+    public Result<Void> updateJobStatus(@PathVariable Integer jobId, @RequestBody @Valid JobStatusDTO jobStatusDTO) {
+        jobsService.updateJobStatus(jobId, jobStatusDTO.getStatus());
+        return Result.success();
+    }
+
 }

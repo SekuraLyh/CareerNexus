@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static com.cn.constant.JobsStatusConstant.CLOSED;
 import static com.cn.constant.JobsStatusConstant.OPEN;
 import static com.cn.constant.UserTypeConstant.ENTERPRISE;
 
@@ -131,6 +132,34 @@ public class JobsServiceImpl implements JobsService {
         List<JobPosting> jobs = jobsMapper.searchMyJob(userId, status);
         PageInfo<JobPosting> pageInfo = new PageInfo<>(jobs);
         return PageUtils.toPageResult(pageInfo, this::convertToJobPostingVO);
+    }
+
+    @Override
+    public void deleteJob(Integer jobId) {
+        jobsMapper.deleteJob(jobId);
+    }
+
+    @Override
+    public void updateJobStatus(Integer jobId, String status) {
+        Long userId = BaseContext.getCurrentId();
+
+        // 1. 校验职位是否存在且属于当前用户
+        JobPosting job = jobsMapper.selectById(jobId);
+        if (job == null) {
+            throw new BusinessException(404, "职位不存在");
+        }
+        if (!userId.equals(Long.valueOf(job.getEnterpriseUserId()))) {
+            throw new BusinessException(403, "无权操作该职位");
+        }
+
+        // 2. 校验状态值合法
+        if (!OPEN.equals(status) && !CLOSED.equals(status)) {
+            throw new BusinessException(400, "无效的状态值，仅支持 OPEN 或 CLOSED");
+        }
+
+        // 3. 更新状态
+        jobsMapper.updateJobStatus(jobId, status);
+        log.info("职位状态已更新, jobId: {}, status: {}, userId: {}", jobId, status, userId);
     }
 
     private JobPostingVO convertToJobPostingVO(JobPosting job) {

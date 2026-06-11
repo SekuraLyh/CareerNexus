@@ -1074,6 +1074,47 @@
         }
       }
     },
+    "/jobs/{jobId}/status": {
+      "patch": {
+        "tags": ["Jobs"],
+        "summary": "更新职位状态（关闭/重新开启）",
+        "description": "企业用户更新自己发布的职位状态。传入 CLOSED 关闭职位，传入 OPEN 重新开启。仅发布者本人可操作。",
+        "operationId": "updateJobStatus",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "jobId", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 1 }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/JobStatusRequest" },
+              "examples": {
+                "close": {
+                  "summary": "关闭职位",
+                  "value": { "status": "CLOSED" }
+                },
+                "reopen": {
+                  "summary": "重新开启职位",
+                  "value": { "status": "OPEN" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "code: 1 — 操作成功；code: 0 — 无权限、职位不存在或状态值无效",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Result" },
+                "example": { "code": 1, "msg": null, "data": null }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jobs/my": {
       "get": {
         "tags": ["Jobs"],

@@ -4,31 +4,38 @@
     <update id="updateJob">
         UPDATE job_postings
         <set>
-            <if test="title != null">
-            AND title = #{title},
+            <if test="title != null and title != '' ">
+                title = #{title},
             </if>
             <if test="description != null">
-            AND description = #{description},
+                description = #{description},
             </if>
             <if test="requiredMajor != null">
-            AND required_major = #{requiredMajor},
+                required_major = #{requiredMajor},
             </if>
             <if test="minExperience != null">
-            AND min_experience = #{minExperience},
+                min_experience = #{minExperience},
             </if>
             <if test="maxExperience != null">
-            AND max_experience = #{maxExperience},
+                max_experience = #{maxExperience},
             </if>
             <if test="minSalary != null">
-            AND min_salary = #{minSalary},
+                min_salary = #{minSalary},
             </if>
             <if test="maxSalary != null">
-            AND max_salary = #{maxSalary},
+                max_salary = #{maxSalary},
             </if>
             <if test="location != null">
-            AND location = #{location},
+                location = #{location},
             </if>
+            updated_at = NOW()
         </set>
+        WHERE id = #{jobId}
+    </update>
+
+    <update id="updateJobStatus">
+        UPDATE job_postings
+        SET status = #{status}, updated_at = NOW()
         WHERE id = #{jobId}
     </update>
 

@@ -1,7 +1,9 @@
 package com.cn.mapper;
 
 import com.cn.entity.JobPosting;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -42,4 +44,9 @@ public interface JobsMapper {
     );
 
     List<JobPosting> searchMyJob(Long userId,String status);
+
+    void updateJobStatus(Integer jobId, String status);
+
+    @Delete("DELETE FROM job_postings WHERE id = #{jobId}")
+    void deleteJob(Integer jobId);
 }

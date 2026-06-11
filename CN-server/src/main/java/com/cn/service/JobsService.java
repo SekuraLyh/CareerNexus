@@ -16,4 +16,8 @@ public interface JobsService {
     JobPostingVO updateJob(Integer jobId, JobPostDTO jobPostDTO);
 
     PageResult<JobPostingVO> getMyJobs(Integer page, Integer size, String status);
+
+    void deleteJob(Integer jobId);
+
+    void updateJobStatus(Integer jobId, String status);
 }
