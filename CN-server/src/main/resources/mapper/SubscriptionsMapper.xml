@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.mapper.SubscriptionsMapper">
+
+    <select id="getSubscriptionsByUserId" resultType="com.cn.VO.SubscriptionsVO">
+        SELECT id, user_id AS userId, keywords, major,
+               min_salary AS minSalary, work_experience AS workExperience,
+               location, enabled, created_at AS createdAt
+        FROM subscriptions
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectById" resultType="com.cn.entity.Subscriptions">
+        SELECT id, user_id AS userId, keywords, major,
+               min_salary AS minSalary, work_experience AS workExperience,
+               location, enabled, created_at AS createdAt, updated_at AS updatedAt
+        FROM subscriptions
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO subscriptions (user_id, keywords, major, min_salary, work_experience, location, enabled)
+        VALUES (#{userId}, #{keywords}, #{major}, #{minSalary}, #{workExperience}, #{location}, #{enabled})
+    </insert>
+
+    <update id="update">
+        UPDATE subscriptions
+        SET keywords = #{keywords},
+            major = #{major},
+            min_salary = #{minSalary},
+            work_experience = #{workExperience},
+            location = #{location}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM subscriptions WHERE id = #{id}
+    </delete>
+
+    <update id="updateEnabled">
+        UPDATE subscriptions SET enabled = #{enabled} WHERE id = #{id}
+    </update>
+
+    <select id="matchJobs" resultType="com.cn.entity.JobPosting">
+        SELECT id, enterprise_user_id AS enterpriseUserId, enterprise_name AS enterpriseName,
+               title, description, required_major AS requiredMajor,
+               min_experience AS minExperience, max_experience AS maxExperience,
+               min_salary AS minSalary, max_salary AS maxSalary,
+               location, status, created_at AS createdAt, updated_at AS updatedAt
+        FROM job_postings
+        WHERE status = 'OPEN'
+        <if test="keywords != null and keywords.size() > 0">
+            AND (
+                <foreach collection="keywords" item="kw" separator=" OR ">
+                    (title LIKE CONCAT('%', #{kw}, '%') OR description LIKE CONCAT('%', #{kw}, '%'))
+                </foreach>
+            )
+        </if>
+        <if test="major != null and major != ''">
+            AND required_major LIKE CONCAT('%', #{major}, '%')
+        </if>
+        <if test="minSalary != null">
+            AND max_salary &gt;= #{minSalary}
+        </if>
+        <if test="workExperience != null">
+            AND min_experience &lt;= #{workExperience}
+        </if>
+        <if test="location != null and location != ''">
+            AND location LIKE CONCAT('%', #{location}, '%')
+        </if>
+    </select>
+
+</mapper>

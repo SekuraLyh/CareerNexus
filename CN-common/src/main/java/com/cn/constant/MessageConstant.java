@@ -16,4 +16,10 @@ public class MessageConstant {
     public static final String OLD_PASSWORD_ERROR = "旧密码错误";
     public static final String PASSWORD_CHANGE_SUCCESS = "密码修改成功";
 
+//    Subscriptions
+    public static final String NO_SUBSCRIPTION = "用户未订阅";
+    public static final String SUBSCRIPTION_NOT_FOUND = "订阅不存在";
+    public static final String SUBSCRIPTION_NOT_OWNER = "无权操作该订阅";
+    public static final String NOTIFICATION_NOT_FOUND = "通知不存在";
+
 }
