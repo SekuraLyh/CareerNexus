@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class JobPosting {
     private Integer id;
     private Integer enterpriseUserId;
+    private String enterpriseName;
     private String title;
     private String description;
     private String requiredMajor;

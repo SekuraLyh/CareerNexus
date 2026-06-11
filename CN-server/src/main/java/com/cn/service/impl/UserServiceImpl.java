@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.cn.constant.MessageConstant.*;
-import static com.cn.constant.StatusConstant.ACTIVE;
-import static com.cn.constant.StatusConstant.INACTIVE;
+import static com.cn.constant.UserStatusConstant.ACTIVE;
+import static com.cn.constant.UserStatusConstant.INACTIVE;
 
 /**
  * 通用用户服务实现类

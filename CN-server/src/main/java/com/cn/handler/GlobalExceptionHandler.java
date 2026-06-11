@@ -8,8 +8,10 @@ import com.cn.exception.LoginFailedException;
 import com.cn.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 
@@ -72,6 +74,26 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(400).body(Result.error(name + MessageConstant.ALREADY_EXIST));
         }
         return ResponseEntity.status(500).body(Result.error(MessageConstant.UNKNOWN_ERROR));
+    }
+
+    /**
+     * 请求参数类型不匹配（如 String 无法转为 Integer）→ HTTP 400
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Result<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        log.warn("参数类型错误: 参数[{}], 值[{}], 期望类型[{}]", e.getName(), e.getValue(), e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "unknown");
+        return ResponseEntity.status(400)
+                .body(Result.error("参数类型错误: " + e.getName() + "=" + e.getValue()));
+    }
+
+    /**
+     * 缺少必填请求参数 → HTTP 400
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Result<Void>> handleMissingParam(MissingServletRequestParameterException e) {
+        log.warn("缺少必填参数: {}", e.getParameterName());
+        return ResponseEntity.status(400)
+                .body(Result.error("缺少必填参数: " + e.getParameterName()));
     }
 
     /**

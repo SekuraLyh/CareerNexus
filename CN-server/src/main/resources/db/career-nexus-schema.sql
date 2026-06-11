@@ -107,6 +107,7 @@ CREATE TABLE enterprise_profiles (
 CREATE TABLE job_postings (
     id                  BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '职位ID',
     enterprise_user_id  BIGINT          NOT NULL                 COMMENT '发布企业用户ID',
+    enterprise_name     VARCHAR(100)    NOT NULL                 COMMENT '企业名称（冗余，便于列表展示）',
     title               VARCHAR(200)    NOT NULL                 COMMENT '职位名称',
     description         TEXT            NOT NULL                 COMMENT '职位描述',
     required_major      VARCHAR(100)    DEFAULT NULL             COMMENT '专业要求',

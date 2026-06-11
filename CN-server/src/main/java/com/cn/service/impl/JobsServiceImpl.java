@@ -1,13 +1,16 @@
 package com.cn.service.impl;
 
+import com.cn.DTO.JobPostDTO;
 import com.cn.DTO.JobQueryDTO;
 import com.cn.VO.JobPostingVO;
-import com.cn.VO.UserVO;
+import com.cn.context.BaseContext;
 import com.cn.entity.JobPosting;
 import com.cn.entity.UserAccount;
+import com.cn.exception.BusinessException;
 import com.cn.mapper.JobsMapper;
 import com.cn.result.PageResult;
 import com.cn.service.JobsService;
+import com.cn.service.UserService;
 import com.cn.utils.PageUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -16,36 +19,120 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static com.cn.constant.JobsStatusConstant.OPEN;
+import static com.cn.constant.UserTypeConstant.ENTERPRISE;
 
 @Service
 @Slf4j
 public class JobsServiceImpl implements JobsService {
     @Autowired
-    private JobsMapper josMapper;
+    private JobsMapper jobsMapper;
+    @Autowired
+    private UserService userService;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     @Override
     public PageResult<JobPostingVO> getJobs(JobQueryDTO jobQuery) {
-        // 1. 设置分页参数（必须在查询之前调用）
         PageHelper.startPage(jobQuery.getPage(), jobQuery.getSize());
 
-        // 2. 执行查询（优先使用组合条件查询，支持灵活筛选）
-        List<JobPosting> jobs = josMapper.selectJosByConditions(
-                jobQuery.getMajor(), 
-                jobQuery.getKeyword(), 
-                jobQuery.getMinSalary(), 
+        List<JobPosting> jobs = jobsMapper.selectJosByConditions(
+                jobQuery.getMajor(),
+                jobQuery.getKeyword(),
+                jobQuery.getMinSalary(),
                 jobQuery.getLocation());
 
-        // 3. 封装为 PageInfo（包含总数、总页数等信息）
         PageInfo<JobPosting> pageInfo = new PageInfo<>(jobs);
-
-        // 4. 使用 PageUtils 工具类转换（Entity -> VO）
-        PageResult<JobPostingVO> result = PageUtils.toPageResult(pageInfo, this::convertToJobPostingVO);
-        return result;
+        return PageUtils.toPageResult(pageInfo, this::convertToJobPostingVO);
     }
 
-    /**
-     * Entity 转 VO（提取为独立方法，便于复用和维护）
-     */
+    @Override
+    public JobPostingVO createJob(JobPostDTO jobPostDTO) {
+        Long userId = BaseContext.getCurrentId();
+
+        // 1. 校验仅企业用户可发布职位
+        UserAccount user = userService.getUserById(userId);
+        if (!ENTERPRISE.equals(user.getUserType())) {
+            throw new BusinessException(403, "仅企业用户可发布职位");
+        }
+
+        // 2. 获取企业名称
+        String enterpriseName = jobsMapper.getCompanyNameByUserId(userId);
+        if (enterpriseName == null || enterpriseName.isEmpty()) {
+            throw new BusinessException(400, "请先完善企业档案信息");
+        }
+
+        // 3. 构建 JobPosting 实体
+        JobPosting job = new JobPosting();
+        job.setTitle(jobPostDTO.getTitle());
+        job.setDescription(jobPostDTO.getDescription());
+        job.setRequiredMajor(jobPostDTO.getRequiredMajor());
+        job.setMinExperience(jobPostDTO.getMinExperience() != null ? String.valueOf(jobPostDTO.getMinExperience()) : null);
+        job.setMaxExperience(jobPostDTO.getMaxExperience() != null ? String.valueOf(jobPostDTO.getMaxExperience()) : null);
+        job.setMinSalary(jobPostDTO.getMinSalary() != null ? String.valueOf(jobPostDTO.getMinSalary()) : null);
+        job.setMaxSalary(jobPostDTO.getMaxSalary() != null ? String.valueOf(jobPostDTO.getMaxSalary()) : null);
+        job.setLocation(jobPostDTO.getLocation());
+        job.setEnterpriseUserId(userId.intValue());
+        job.setEnterpriseName(enterpriseName);
+        job.setStatus(OPEN);
+
+        String now = LocalDateTime.now().format(FORMATTER);
+        job.setCreatedAt(now);
+        job.setUpdatedAt(now);
+
+        // 4. 插入数据库
+        jobsMapper.insertJob(job);
+        log.info("职位发布成功, jobId: {}, title: {}, enterpriseName: {}", job.getId(), job.getTitle(), enterpriseName);
+
+        // 5. 返回 VO
+        return convertToJobPostingVO(job);
+    }
+
+    @Override
+    public JobPostingVO getJobDetail(Integer jobId) {
+        JobPosting job = jobsMapper.selectById(jobId);
+        return convertToJobPostingVO(job);
+    }
+
+    @Override
+    public JobPostingVO updateJob(Integer jobId, JobPostDTO jobPostDTO) {
+
+        jobsMapper.updateJob(
+                jobId,
+                jobPostDTO.getTitle(),
+                jobPostDTO.getDescription(),
+                jobPostDTO.getRequiredMajor(),
+                jobPostDTO.getMinExperience(),
+                jobPostDTO.getMaxExperience(),
+                jobPostDTO.getMinSalary(),
+                jobPostDTO.getMaxSalary(),
+                jobPostDTO.getLocation()
+        );
+
+        return convertToJobPostingVO(jobsMapper.selectById(jobId));
+    }
+
+    @Override
+    public PageResult<JobPostingVO> getMyJobs(Integer page, Integer size, String status) {
+        Long userId = BaseContext.getCurrentId();
+
+        // 1. 校验仅企业用户可查询自己发布的职位
+        UserAccount user = userService.getUserById(userId);
+        if (!ENTERPRISE.equals(user.getUserType())) {
+            throw new BusinessException(403, "仅企业用户可查看已发布的职位");
+        }
+
+        // 2. 分页查询
+        PageHelper.startPage(page, size);
+        List<JobPosting> jobs = jobsMapper.searchMyJob(userId, status);
+        PageInfo<JobPosting> pageInfo = new PageInfo<>(jobs);
+        return PageUtils.toPageResult(pageInfo, this::convertToJobPostingVO);
+    }
+
     private JobPostingVO convertToJobPostingVO(JobPosting job) {
         JobPostingVO vo = new JobPostingVO();
         BeanUtils.copyProperties(job, vo);

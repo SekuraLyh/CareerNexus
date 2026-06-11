@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.cn.constant.MessageConstant.ACCOUNT_NOT_FOUND;
-import static com.cn.constant.StatusConstant.ACTIVE;
-import static com.cn.constant.StatusConstant.INACTIVE;
+import static com.cn.constant.UserStatusConstant.ACTIVE;
+import static com.cn.constant.UserStatusConstant.INACTIVE;
 
 @Service
 @Slf4j

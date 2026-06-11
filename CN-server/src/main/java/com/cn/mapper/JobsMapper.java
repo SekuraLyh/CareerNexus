@@ -23,4 +23,23 @@ public interface JobsMapper {
             String location
     );
 
+    void insertJob(JobPosting job);
+
+    String getCompanyNameByUserId(Long userId);
+
+    JobPosting selectById(Integer jobId);
+
+    void updateJob(
+            Integer jobId,
+            String title,
+            String description,
+            String requiredMajor,
+            Integer minExperience,
+            Integer maxExperience,
+            Integer minSalary,
+            Integer maxSalary,
+            String location
+    );
+
+    List<JobPosting> searchMyJob(Long userId,String status);
 }
