@@ -2,22 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.cn.mapper.NotificationsMapper">
 
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notifications (user_id, type, related_id, message, target_url)
+        VALUES (#{userId}, #{type}, #{relatedId}, #{message}, #{targetUrl})
+    </insert>
+
     <select id="getByUserId" resultType="com.cn.VO.NotificationVO">
-        SELECT id, subscription_id AS subscriptionId, user_id AS userId, job_id AS jobId,
-               job_title AS jobTitle, company_name AS companyName,
-               matched_at AS matchedAt, is_read AS isRead
+        SELECT id, user_id AS userId, type, related_id AS relatedId,
+               message, target_url AS targetUrl, is_read AS isRead, created_at AS createdAt
         FROM notifications
         WHERE user_id = #{userId}
         <if test="isRead != null">
             AND is_read = #{isRead}
         </if>
-        ORDER BY matched_at DESC
+        ORDER BY created_at DESC
     </select>
 
     <select id="selectById" resultType="com.cn.VO.NotificationVO">
-        SELECT id, subscription_id AS subscriptionId, user_id AS userId, job_id AS jobId,
-               job_title AS jobTitle, company_name AS companyName,
-               matched_at AS matchedAt, is_read AS isRead
+        SELECT id, user_id AS userId, type, related_id AS relatedId,
+               message, target_url AS targetUrl, is_read AS isRead, created_at AS createdAt
         FROM notifications
         WHERE id = #{id}
     </select>

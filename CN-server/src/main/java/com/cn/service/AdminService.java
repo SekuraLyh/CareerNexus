@@ -3,6 +3,7 @@ package com.cn.service;
 import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
+import com.cn.entity.IndustryReport;
 import com.cn.result.PageResult;
 
 public interface AdminService {
@@ -31,4 +32,10 @@ public interface AdminService {
     UserVO getUserDetail(Long userId);
 
     void updateUserStatus(Long userId, String status);
+
+    /** 分页获取所有行业报告 */
+    PageResult<IndustryReport> listAllReports(Integer page, Integer size, String industry);
+
+    /** 删除行业报告 */
+    void deleteReport(Long reportId);
 }

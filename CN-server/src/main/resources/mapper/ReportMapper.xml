@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cn.mapper.ReportMapper">
+
+    <!-- ==================== 报告查询 ==================== -->
+
+    <select id="selectReports" resultType="com.cn.entity.IndustryReport">
+        SELECT id, title, industry, period_start AS periodStart, period_end AS periodEnd,
+               summary, content, generated_at AS generatedAt, created_at AS createdAt
+        FROM industry_reports
+        <where>
+            <if test="industry != null and industry != ''">
+                AND industry = #{industry}
+            </if>
+        </where>
+        ORDER BY generated_at DESC
+    </select>
+
+    <select id="selectReportById" resultType="com.cn.entity.IndustryReport">
+        SELECT id, title, industry, period_start AS periodStart, period_end AS periodEnd,
+               summary, content, generated_at AS generatedAt, created_at AS createdAt
+        FROM industry_reports
+        WHERE id = #{reportId}
+    </select>
+
+    <insert id="insertReport" useGeneratedKeys="true" keyProperty="id" parameterType="com.cn.entity.IndustryReport">
+        INSERT INTO industry_reports (title, industry, period_start, period_end, summary, content, generated_at, created_at)
+        VALUES (#{title}, #{industry}, #{periodStart}, #{periodEnd}, #{summary}, #{content}, #{generatedAt}, #{createdAt})
+    </insert>
+
+    <delete id="deleteReportById">
+        DELETE FROM industry_reports WHERE id = #{reportId}
+    </delete>
+
+    <!-- ==================== 薪资趋势 ==================== -->
+
+    <select id="selectSalaryTrends" resultType="com.cn.entity.SalaryTrend">
+        SELECT st.id, st.report_id AS reportId, st.period, st.avg_salary AS avgSalary, st.job_count AS jobCount
+        FROM salary_trends st
+        JOIN industry_reports ir ON st.report_id = ir.id
+        <where>
+            <if test="industry != null and industry != ''">
+                AND ir.industry = #{industry}
+            </if>
+        </where>
+        ORDER BY st.period
+    </select>
+
+    <insert id="insertSalaryTrends">
+        INSERT INTO salary_trends (report_id, period, avg_salary, job_count) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.reportId}, #{item.period}, #{item.avgSalary}, #{item.jobCount})
+        </foreach>
+    </insert>
+
+    <!-- ==================== 需求分布 ==================== -->
+
+    <select id="selectDemandDistributions" resultType="com.cn.entity.DemandDistribution">
+        SELECT dd.id, dd.report_id AS reportId, dd.dimension_type AS dimensionType,
+               dd.label, dd.count, dd.percentage
+        FROM demand_distributions dd
+        WHERE dd.dimension_type = #{dimensionType}
+        ORDER BY dd.count DESC
+    </select>
+
+    <insert id="insertDemandDistributions">
+        INSERT INTO demand_distributions (report_id, dimension_type, label, count, percentage) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.reportId}, #{item.dimensionType}, #{item.label}, #{item.count}, #{item.percentage})
+        </foreach>
+    </insert>
+
+    <!-- ==================== 行业统计 ==================== -->
+
+    <select id="countJobsByIndustry" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM job_postings jp
+        JOIN enterprise_profiles ep ON jp.enterprise_user_id = ep.user_id
+        WHERE ep.industry = #{industry} AND jp.status = 'OPEN'
+    </select>
+
+    <select id="avgSalaryByIndustry" resultType="java.lang.Integer">
+        SELECT COALESCE(ROUND(AVG((jp.min_salary + jp.max_salary) / 2)), 0)
+        FROM job_postings jp
+        JOIN enterprise_profiles ep ON jp.enterprise_user_id = ep.user_id
+        WHERE ep.industry = #{industry} AND jp.status = 'OPEN'
+          AND jp.min_salary IS NOT NULL AND jp.max_salary IS NOT NULL
+    </select>
+
+    <!-- ==================== 分布数据聚合 ==================== -->
+
+    <select id="selectDistribution" resultType="java.util.HashMap">
+        SELECT COALESCE(jp.${column}, '其他') AS label, COUNT(*) AS cnt
+        FROM job_postings jp
+        JOIN enterprise_profiles ep ON jp.enterprise_user_id = ep.user_id
+        WHERE ep.industry = #{industry} AND jp.status = 'OPEN'
+        GROUP BY jp.${column}
+        ORDER BY cnt DESC
+    </select>
+
+    <select id="selectExperienceDistribution" resultType="java.util.HashMap">
+        SELECT
+            CASE
+                WHEN jp.min_experience IS NULL AND jp.max_experience IS NULL THEN '经验不限'
+                WHEN jp.max_experience &lt;= 1 THEN '1年以下'
+                WHEN jp.max_experience &lt;= 3 THEN '1-3年'
+                WHEN jp.max_experience &lt;= 5 THEN '3-5年'
+                WHEN jp.max_experience &lt;= 10 THEN '5-10年'
+                ELSE '10年以上'
+            END AS label,
+            COUNT(*) AS cnt
+        FROM job_postings jp
+        JOIN enterprise_profiles ep ON jp.enterprise_user_id = ep.user_id
+        WHERE ep.industry = #{industry} AND jp.status = 'OPEN'
+        GROUP BY label
+        ORDER BY cnt DESC
+    </select>
+
+</mapper>

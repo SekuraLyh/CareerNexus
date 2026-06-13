@@ -5,6 +5,7 @@ import com.cn.DTO.UserStatusRequestDTO;
 import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
+import com.cn.entity.IndustryReport;
 import com.cn.result.PageResult;
 import com.cn.result.Result;
 import com.cn.service.AdminService;
@@ -69,6 +70,25 @@ public class AdminController {
     public Result updateUserStatus(@PathVariable Long userId, @RequestBody UserStatusRequestDTO request) {
         log.info("更新用户状态: userId={}, status={}", userId, request.getStatus());
         adminService.updateUserStatus(userId, request.getStatus());
+        return Result.success();
+    }
+
+    @GetMapping("/reports")
+    @ApiOperation("获取所有行业报告")
+    public Result<PageResult<IndustryReport>> listAllReports(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String industry) {
+        log.info("管理员获取报告列表: page={}, size={}, industry={}", page, size, industry);
+        PageResult<IndustryReport> result = adminService.listAllReports(page, size, industry);
+        return Result.success(result);
+    }
+
+    @DeleteMapping("/reports/{reportId}")
+    @ApiOperation("删除行业报告")
+    public Result deleteReport(@PathVariable Long reportId) {
+        log.info("管理员删除报告: reportId={}", reportId);
+        adminService.deleteReport(reportId);
         return Result.success();
     }
 }

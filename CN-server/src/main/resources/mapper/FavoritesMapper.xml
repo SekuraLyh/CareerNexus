@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.mapper.FavoritesMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO favorites (subscriber_id, target_type, target_id)
+        VALUES (#{subscriberId}, #{targetType}, #{targetId})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM favorites WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByTarget">
+        DELETE FROM favorites
+        WHERE subscriber_id = #{subscriberId}
+          AND target_type = #{targetType}
+          AND target_id = #{targetId}
+    </delete>
+
+    <select id="getBySubscriberId" resultType="com.cn.VO.FavoriteVO">
+        SELECT f.id, f.subscriber_id AS subscriberId, f.target_type AS targetType,
+               f.target_id AS targetId, f.created_at AS createdAt,
+               CASE f.target_type
+                   WHEN 'JOB_SEEKER' THEN jsp.real_name
+                   WHEN 'ENTERPRISE' THEN ep.company_name
+                   WHEN 'JOB' THEN jp.title
+               END AS targetName,
+               CASE f.target_type
+                   WHEN 'JOB_SEEKER' THEN jsp.major
+                   WHEN 'ENTERPRISE' THEN ep.industry
+                   WHEN 'JOB' THEN jp.enterprise_name
+               END AS targetDesc,
+               CASE f.target_type
+                   WHEN 'JOB_SEEKER' THEN CONCAT(jsp.expected_salary, '')
+                   WHEN 'JOB' THEN CONCAT(jp.location, '')
+                   ELSE ''
+               END AS targetExtra
+        FROM favorites f
+        LEFT JOIN job_seeker_profiles jsp ON f.target_type = 'JOB_SEEKER' AND f.target_id = jsp.user_id
+        LEFT JOIN enterprise_profiles ep ON f.target_type = 'ENTERPRISE' AND f.target_id = ep.user_id
+        LEFT JOIN job_postings jp ON f.target_type = 'JOB' AND f.target_id = jp.id
+        WHERE f.subscriber_id = #{subscriberId}
+        <if test="targetType != null and targetType != ''">
+            AND f.target_type = #{targetType}
+        </if>
+        ORDER BY f.created_at DESC
+    </select>
+
+    <select id="selectById" resultType="com.cn.entity.Favorite">
+        SELECT id, subscriber_id AS subscriberId, target_type AS targetType,
+               target_id AS targetId, created_at AS createdAt
+        FROM favorites
+        WHERE id = #{id}
+    </select>
+
+    <select id="countByTarget" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM favorites
+        WHERE subscriber_id = #{subscriberId}
+          AND target_type = #{targetType}
+          AND target_id = #{targetId}
+    </select>
+
+    <select id="selectByTarget" resultType="com.cn.entity.Favorite">
+        SELECT id, subscriber_id AS subscriberId, target_type AS targetType,
+               target_id AS targetId, created_at AS createdAt
+        FROM favorites
+        WHERE target_type = #{targetType}
+          AND target_id = #{targetId}
+        LIMIT 1
+    </select>
+
+</mapper>

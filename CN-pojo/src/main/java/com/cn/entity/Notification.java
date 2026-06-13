@@ -5,12 +5,11 @@ import lombok.Data;
 @Data
 public class Notification {
     private Long id;
-    private Long subscriptionId;
     private Long userId;
-    private Long jobId;
-    private String jobTitle;
-    private String companyName;
-    private String matchedAt;
+    private String type;        // FAVORITED
+    private Long relatedId;     // 关联 favorites.id
+    private String message;
+    private String targetUrl;
     private Boolean isRead;
     private String createdAt;
 }

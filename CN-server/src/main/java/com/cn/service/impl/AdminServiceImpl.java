@@ -3,11 +3,13 @@ package com.cn.service.impl;
 import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
+import com.cn.entity.IndustryReport;
 import com.cn.entity.UserAccount;
 import com.cn.exception.BusinessException;
 import com.cn.mapper.AdminMapper;
 import com.cn.result.PageResult;
 import com.cn.service.AdminService;
+import com.cn.service.ReportService;
 import com.cn.utils.PageUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -30,6 +32,9 @@ public class AdminServiceImpl implements AdminService {
     
     @Autowired
     private AdminMapper adminMapper;
+
+    @Autowired
+    private ReportService reportService;
 
     @Override
     public DashedBorderVO getDashedBorder() {
@@ -108,6 +113,16 @@ public class AdminServiceImpl implements AdminService {
         }
 
         return convertToUserVO(user);
+    }
+
+    @Override
+    public PageResult<IndustryReport> listAllReports(Integer page, Integer size, String industry) {
+        return reportService.listAllReports(page, size, industry);
+    }
+
+    @Override
+    public void deleteReport(Long reportId) {
+        reportService.deleteReport(reportId);
     }
 
     /**

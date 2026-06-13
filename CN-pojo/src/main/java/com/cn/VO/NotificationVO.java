@@ -5,10 +5,11 @@ import lombok.Data;
 @Data
 public class NotificationVO {
     private Long id;
-    private Long subscriptionId;
-    private Long jobId;
-    private String jobTitle;
-    private String companyName;
-    private String matchedAt;
+    private Long userId;
+    private String type;
+    private Long relatedId;
+    private String message;
+    private String targetUrl;
     private Boolean isRead;
+    private String createdAt;
 }
