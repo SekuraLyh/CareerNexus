@@ -25,21 +25,30 @@
                    WHEN 'JOB_SEEKER' THEN jsp.real_name
                    WHEN 'ENTERPRISE' THEN ep.company_name
                    WHEN 'JOB' THEN jp.title
+                   WHEN 'POST' THEN fp.title
+               WHEN 'INDUSTRY_REPORT' THEN ir.title
                END AS targetName,
                CASE f.target_type
                    WHEN 'JOB_SEEKER' THEN jsp.major
                    WHEN 'ENTERPRISE' THEN ep.industry
                    WHEN 'JOB' THEN jp.enterprise_name
+                   WHEN 'POST' THEN fc.name
+                   WHEN 'INDUSTRY_REPORT' THEN ir.industry
                END AS targetDesc,
                CASE f.target_type
                    WHEN 'JOB_SEEKER' THEN CONCAT(jsp.expected_salary, '')
                    WHEN 'JOB' THEN CONCAT(jp.location, '')
+                   WHEN 'POST' THEN CONCAT(fp.like_count, ' 赞 · ', fp.comment_count, ' 评论')
+                   WHEN 'INDUSTRY_REPORT' THEN CONCAT(ir.period_start, ' ~ ', ir.period_end)
                    ELSE ''
                END AS targetExtra
         FROM favorites f
         LEFT JOIN job_seeker_profiles jsp ON f.target_type = 'JOB_SEEKER' AND f.target_id = jsp.user_id
         LEFT JOIN enterprise_profiles ep ON f.target_type = 'ENTERPRISE' AND f.target_id = ep.user_id
         LEFT JOIN job_postings jp ON f.target_type = 'JOB' AND f.target_id = jp.id
+        LEFT JOIN forum_posts fp ON f.target_type = 'POST' AND f.target_id = fp.id
+        LEFT JOIN forum_categories fc ON f.target_type = 'POST' AND fp.category_id = fc.id
+        LEFT JOIN industry_reports ir ON f.target_type = 'INDUSTRY_REPORT' AND f.target_id = ir.id
         WHERE f.subscriber_id = #{subscriberId}
         <if test="targetType != null and targetType != ''">
             AND f.target_type = #{targetType}

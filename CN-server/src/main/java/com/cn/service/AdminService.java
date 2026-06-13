@@ -4,6 +4,7 @@ import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
 import com.cn.entity.IndustryReport;
+import com.cn.VO.PostVO;
 import com.cn.result.PageResult;
 
 public interface AdminService {
@@ -38,4 +39,13 @@ public interface AdminService {
 
     /** 删除行业报告 */
     void deleteReport(Long reportId);
+
+    /** 分页获取所有帖子 */
+    PageResult<PostVO> listAllPosts(Integer page, Integer size, String keyword);
+
+    /** 管理员删除帖子 */
+    void adminDeletePost(Long postId);
+
+    /** 管理员删除评论 */
+    void adminDeleteComment(Long commentId);
 }

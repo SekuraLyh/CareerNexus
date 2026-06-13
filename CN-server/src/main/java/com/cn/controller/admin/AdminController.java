@@ -6,6 +6,7 @@ import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
 import com.cn.entity.IndustryReport;
+import com.cn.VO.PostVO;
 import com.cn.result.PageResult;
 import com.cn.result.Result;
 import com.cn.service.AdminService;
@@ -89,6 +90,33 @@ public class AdminController {
     public Result deleteReport(@PathVariable Long reportId) {
         log.info("管理员删除报告: reportId={}", reportId);
         adminService.deleteReport(reportId);
+        return Result.success();
+    }
+
+    @GetMapping("/forum/posts")
+    @ApiOperation("获取所有帖子")
+    public Result<PageResult<PostVO>> listAllPosts(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String keyword) {
+        log.info("管理员获取帖子列表: page={}, size={}, keyword={}", page, size, keyword);
+        PageResult<PostVO> result = adminService.listAllPosts(page, size, keyword);
+        return Result.success(result);
+    }
+
+    @DeleteMapping("/forum/posts/{postId}")
+    @ApiOperation("删除帖子")
+    public Result deletePost(@PathVariable Long postId) {
+        log.info("管理员删除帖子: postId={}", postId);
+        adminService.adminDeletePost(postId);
+        return Result.success();
+    }
+
+    @DeleteMapping("/forum/comments/{commentId}")
+    @ApiOperation("删除评论")
+    public Result deleteComment(@PathVariable Long commentId) {
+        log.info("管理员删除评论: commentId={}", commentId);
+        adminService.adminDeleteComment(commentId);
         return Result.success();
     }
 }

@@ -7,13 +7,17 @@ import com.cn.VO.FavoriteVO;
 import com.cn.VO.NotificationVO;
 import com.cn.context.BaseContext;
 import com.cn.entity.Favorite;
+import com.cn.entity.ForumPost;
+import com.cn.entity.IndustryReport;
 import com.cn.entity.JobPosting;
 import com.cn.entity.Notification;
 import com.cn.exception.BusinessException;
 import com.cn.mapper.FavoritesMapper;
+import com.cn.mapper.ForumMapper;
 import com.cn.mapper.JobsMapper;
 import com.cn.mapper.NotificationsMapper;
 import com.cn.mapper.ProfileMapper;
+import com.cn.mapper.ReportMapper;
 import com.cn.result.PageResult;
 import com.cn.service.FavoriteService;
 import com.cn.utils.PageUtils;
@@ -42,6 +46,12 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Autowired
     private JobsMapper jobsMapper;
+
+    @Autowired
+    private ReportMapper reportMapper;
+
+    @Autowired
+    private ForumMapper forumMapper;
 
     @Override
     public FavoriteVO addFavorite(FavoriteRequestDTO dto) {
@@ -122,6 +132,24 @@ public class FavoriteServiceImpl implements FavoriteService {
                 notification.setTargetUrl("/enterprise/" + targetId);
                 break;
             }
+            case "POST": {
+                // 收藏帖子 → 通知帖子作者
+                ForumPost post = forumMapper.selectPostEntityById(targetId);
+                if (post == null) return;
+
+                String subscriberName = getSubscriberName(currentId);
+
+                notification.setUserId(post.getUserId());
+                notification.setType("POST_COLLECTED");
+                notification.setMessage(subscriberName + " 收藏了你的帖子「" + post.getTitle() + "」");
+                notification.setTargetUrl("/forum/posts/" + targetId);
+                break;
+            }
+            case "INDUSTRY_REPORT": {
+                // 收藏行业报告 → 仅记录，无特定被通知方（系统生成内容）
+                // 可以通知管理员或跳过
+                return;
+            }
             default:
                 return;
         }
@@ -129,6 +157,23 @@ public class FavoriteServiceImpl implements FavoriteService {
         notificationsMapper.insert(notification);
         log.info("通知已发送: favoriteId={}, targetType={}, notifyUserId={}",
                 favorite.getId(), targetType, notification.getUserId());
+    }
+
+    /**
+     * 获取收藏者名称
+     */
+    private String getSubscriberName(Long userId) {
+        JobSeekerProfileDTO seeker = profileMapper.getJobSeekerProfileById(userId);
+        if (seeker != null && seeker.getRealName() != null) {
+            return seeker.getRealName();
+        }
+
+        EnterpriseProfileDTO enterprise = profileMapper.getEnterpriseProfileById(userId);
+        if (enterprise != null && enterprise.getCompanyName() != null) {
+            return enterprise.getCompanyName();
+        }
+
+        return "用户";
     }
 
     @Override

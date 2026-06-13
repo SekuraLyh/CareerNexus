@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cn.mapper.ForumMapper">
+
+    <!-- ==================== 分类 ==================== -->
+
+    <select id="selectCategories" resultType="com.cn.entity.ForumCategory">
+        SELECT id, name, description, created_at AS createdAt, updated_at AS updatedAt
+        FROM forum_categories
+        ORDER BY id
+    </select>
+
+    <insert id="insertCategory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO forum_categories (name, description)
+        VALUES (#{name}, #{description})
+    </insert>
+
+    <!-- ==================== 帖子 ==================== -->
+
+    <select id="selectPosts" resultType="com.cn.VO.PostVO">
+        SELECT fp.id, fp.category_id AS categoryId, fp.user_id AS userId,
+               fp.title, fp.content, fp.like_count AS likeCount, fp.comment_count AS commentCount,
+               fp.created_at AS createdAt,
+               fc.name AS categoryName,
+               u.username
+        FROM forum_posts fp
+        LEFT JOIN forum_categories fc ON fp.category_id = fc.id
+        LEFT JOIN users u ON fp.user_id = u.id
+        WHERE fp.is_deleted = 0
+        <if test="categoryId != null">
+            AND fp.category_id = #{categoryId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (fp.title LIKE CONCAT('%', #{keyword}, '%') OR fp.content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'popular'">
+                fp.like_count DESC, fp.comment_count DESC
+            </when>
+            <otherwise>
+                fp.created_at DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectPostsByUserId" resultType="com.cn.VO.PostVO">
+        SELECT fp.id, fp.category_id AS categoryId, fp.user_id AS userId,
+               fp.title, fp.content, fp.like_count AS likeCount, fp.comment_count AS commentCount,
+               fp.created_at AS createdAt,
+               fc.name AS categoryName,
+               u.username
+        FROM forum_posts fp
+        LEFT JOIN forum_categories fc ON fp.category_id = fc.id
+        LEFT JOIN users u ON fp.user_id = u.id
+        WHERE fp.is_deleted = 0 AND fp.user_id = #{userId}
+        ORDER BY fp.created_at DESC
+    </select>
+
+    <select id="selectPostById" resultType="com.cn.VO.PostVO">
+        SELECT fp.id, fp.category_id AS categoryId, fp.user_id AS userId,
+               fp.title, fp.content, fp.like_count AS likeCount, fp.comment_count AS commentCount,
+               fp.created_at AS createdAt,
+               fc.name AS categoryName,
+               u.username
+        FROM forum_posts fp
+        LEFT JOIN forum_categories fc ON fp.category_id = fc.id
+        LEFT JOIN users u ON fp.user_id = u.id
+        WHERE fp.id = #{postId} AND fp.is_deleted = 0
+    </select>
+
+    <select id="selectPostEntityById" resultType="com.cn.entity.ForumPost">
+        SELECT id, category_id AS categoryId, user_id AS userId,
+               title, content, like_count AS likeCount, comment_count AS commentCount,
+               is_deleted AS isDeleted, created_at AS createdAt, updated_at AS updatedAt
+        FROM forum_posts
+        WHERE id = #{postId} AND is_deleted = 0
+    </select>
+
+    <insert id="insertPost" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO forum_posts (category_id, user_id, title, content, like_count, comment_count)
+        VALUES (#{categoryId}, #{userId}, #{title}, #{content}, 0, 0)
+    </insert>
+
+    <update id="updatePost">
+        UPDATE forum_posts
+        SET title = #{title}, content = #{content}, category_id = #{categoryId}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deletePostById">
+        UPDATE forum_posts SET is_deleted = 1 WHERE id = #{postId}
+    </update>
+
+    <!-- ==================== 评论 ==================== -->
+
+    <select id="selectCommentsByPostId" resultType="com.cn.VO.CommentVO">
+        SELECT fc.id, fc.post_id AS postId, fc.user_id AS userId,
+               fc.content, fc.created_at AS createdAt,
+               u.username
+        FROM forum_comments fc
+        LEFT JOIN users u ON fc.user_id = u.id
+        WHERE fc.post_id = #{postId} AND fc.is_deleted = 0
+        ORDER BY fc.created_at ASC
+    </select>
+
+    <insert id="insertComment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO forum_comments (post_id, user_id, content)
+        VALUES (#{postId}, #{userId}, #{content})
+    </insert>
+
+    <update id="deleteCommentById">
+        UPDATE forum_comments SET is_deleted = 1 WHERE id = #{commentId}
+    </update>
+
+    <select id="selectCommentById" resultType="com.cn.entity.ForumComment">
+        SELECT id, post_id AS postId, user_id AS userId,
+               content, is_deleted AS isDeleted, created_at AS createdAt
+        FROM forum_comments
+        WHERE id = #{commentId}
+    </select>
+
+    <!-- ==================== 点赞 ==================== -->
+
+    <select id="selectLikeByPostAndUser" resultType="com.cn.entity.ForumLike">
+        SELECT id, post_id AS postId, user_id AS userId, created_at AS createdAt
+        FROM forum_likes
+        WHERE post_id = #{postId} AND user_id = #{userId}
+    </select>
+
+    <insert id="insertLike">
+        INSERT INTO forum_likes (post_id, user_id) VALUES (#{postId}, #{userId})
+    </insert>
+
+    <delete id="deleteLikeByPostAndUser">
+        DELETE FROM forum_likes WHERE post_id = #{postId} AND user_id = #{userId}
+    </delete>
+
+    <!-- ==================== 计数器 ==================== -->
+
+    <update id="incrementCommentCount">
+        UPDATE forum_posts SET comment_count = comment_count + 1 WHERE id = #{postId}
+    </update>
+
+    <update id="decrementCommentCount">
+        UPDATE forum_posts SET comment_count = GREATEST(comment_count - 1, 0) WHERE id = #{postId}
+    </update>
+
+    <update id="incrementLikeCount">
+        UPDATE forum_posts SET like_count = like_count + 1 WHERE id = #{postId}
+    </update>
+
+    <update id="decrementLikeCount">
+        UPDATE forum_posts SET like_count = GREATEST(like_count - 1, 0) WHERE id = #{postId}
+    </update>
+
+    <!-- ==================== 用户档案查询 ==================== -->
+
+    <select id="getJobSeekerProfile" resultType="com.cn.DTO.JobSeekerProfileDTO">
+        SELECT u.id, u.username, jsp.real_name AS realName
+        FROM users u
+        LEFT JOIN job_seeker_profiles jsp ON u.id = jsp.user_id
+        WHERE u.id = #{userId}
+    </select>
+
+    <select id="getEnterpriseProfile" resultType="com.cn.DTO.EnterpriseProfileDTO">
+        SELECT u.id, u.username, ep.company_name AS companyName
+        FROM users u
+        LEFT JOIN enterprise_profiles ep ON u.id = ep.user_id
+        WHERE u.id = #{userId}
+    </select>
+
+</mapper>

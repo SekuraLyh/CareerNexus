@@ -4,12 +4,14 @@ import com.cn.VO.DashedBorderVO;
 import com.cn.VO.SystemOverviewVO;
 import com.cn.VO.UserVO;
 import com.cn.entity.IndustryReport;
+import com.cn.VO.PostVO;
 import com.cn.entity.UserAccount;
 import com.cn.exception.BusinessException;
 import com.cn.mapper.AdminMapper;
 import com.cn.result.PageResult;
 import com.cn.service.AdminService;
 import com.cn.service.ReportService;
+import com.cn.service.ForumService;
 import com.cn.utils.PageUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -35,6 +37,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private ReportService reportService;
+
+    @Autowired
+    private ForumService forumService;
 
     @Override
     public DashedBorderVO getDashedBorder() {
@@ -172,5 +177,20 @@ public class AdminServiceImpl implements AdminService {
                 .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    public PageResult<PostVO> listAllPosts(Integer page, Integer size, String keyword) {
+        return forumService.listAllPosts(page, size, keyword);
+    }
+
+    @Override
+    public void adminDeletePost(Long postId) {
+        forumService.adminDeletePost(postId);
+    }
+
+    @Override
+    public void adminDeleteComment(Long commentId) {
+        forumService.adminDeleteComment(commentId);
     }
 }

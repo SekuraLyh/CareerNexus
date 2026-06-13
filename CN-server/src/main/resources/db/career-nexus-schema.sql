@@ -158,31 +158,26 @@ CREATE TABLE subscriptions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='职位订阅表';
 
 -- =============================================================================
--- 6. 职位匹配通知表 (notifications)
--- 信息互动模块 — 存储订阅匹配结果的历史快照
--- job_title/company_name 冗余存储，防止源数据变更后历史通知信息丢失
+-- 6. 用户通知表 (notifications)
+-- 信息互动模块 — 通用通知表，支持多种通知类型
+-- type 字段使用 VARCHAR 而非 ENUM，便于扩展新的通知类型
+-- related_id 可为空，因为不是所有通知都关联特定记录
 -- =============================================================================
 CREATE TABLE notifications (
-    id              BIGINT          NOT NULL AUTO_INCREMENT  COMMENT '通知ID',
-    subscription_id BIGINT          NOT NULL                 COMMENT '关联订阅ID',
-    user_id         BIGINT          NOT NULL                 COMMENT '接收通知的用户ID',
-    job_id          BIGINT          NOT NULL                 COMMENT '匹配的职位ID',
-    job_title       VARCHAR(200)    NOT NULL                 COMMENT '职位名称快照',
-    company_name    VARCHAR(100)    NOT NULL                 COMMENT '企业名称快照',
-    matched_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '匹配时间',
-    is_read         TINYINT(1)      NOT NULL DEFAULT 0       COMMENT '是否已读：1已读 0未读',
-    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    id              BIGINT       NOT NULL AUTO_INCREMENT  COMMENT '通知ID',
+    user_id         BIGINT       NOT NULL                  COMMENT '接收通知的用户ID',
+    type            VARCHAR(50)  NOT NULL                  COMMENT '通知类型：FAVORITED/POST_LIKED/USER_FOLLOWED/NEW_POST/POST_COLLECTED等',
+    related_id      BIGINT       DEFAULT NULL              COMMENT '关联记录ID（收藏/帖子/用户等）',
+    message         VARCHAR(500) NOT NULL                  COMMENT '通知消息文本',
+    target_url      VARCHAR(200) DEFAULT NULL              COMMENT '跳转链接',
+    is_read         TINYINT(1)   NOT NULL DEFAULT 0        COMMENT '是否已读',
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '通知时间',
     PRIMARY KEY (id),
     INDEX idx_user_read (user_id, is_read),
-    INDEX idx_subscription (subscription_id),
-    INDEX idx_matched_at (matched_at),
-    CONSTRAINT fk_notif_sub FOREIGN KEY (subscription_id) REFERENCES subscriptions(id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_created_at (created_at),
     CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_notif_job FOREIGN KEY (job_id) REFERENCES job_postings(id)
         ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='职位匹配通知表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户通知表';
 
 -- =============================================================================
 -- 7. 行业分析报告表 (industry_reports)
