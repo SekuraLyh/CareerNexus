@@ -1,7 +1,8 @@
+# 生产环境
 cn:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    host: 192.168.100.10
+    host: mysql #容器名映射
     port: 13306
     database: CareerNexus
     username: root
@@ -9,4 +10,5 @@ cn:
 
   redis:
     host: 192.168.100.10
-    port: 16379
+    port: 6379
+    password: 123321

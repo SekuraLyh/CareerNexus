@@ -67,7 +67,7 @@ CREATE TABLE job_seeker_profiles (
     INDEX idx_work_experience (work_experience),
     INDEX idx_expected_salary (expected_salary),
     INDEX idx_graduation_year (graduation_year),
-    FULLTEXT INDEX ft_major_skills (major, skills) WITH PARSER ngram,
+    FULLTEXT INDEX ft_major_skills (major, skills) WITH PARSER ngram, # 全文索引,适配中文的分词器
     CONSTRAINT fk_seeker_user FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='求职者档案表';

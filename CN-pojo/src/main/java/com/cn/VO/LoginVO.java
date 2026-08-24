@@ -7,10 +7,10 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@Schema(description = "求职者登录响应")
+@Schema(description = "用户登录响应")
 public class LoginVO {
 
-    @Schema(description = "JWT 令牌", example = "eyJhbGciOiJIUzI1NiJ9...")
+    @Schema(description = "JWT 令牌")
     private String token;
 
     @Schema(description = "用户信息")
@@ -26,22 +26,22 @@ public class LoginVO {
     @Schema(description = "用户基本信息")
     public static class UserInfo {
 
-        @Schema(description = "用户ID", example = "1")
+        @Schema(description = "用户ID")
         private Long id;
 
-        @Schema(description = "用户名", example = "zhangsan")
+        @Schema(description = "用户名")
         private String username;
 
-        @Schema(description = "用户类型（jobseeker/enterprise/admin）", example = "jobseeker")
+        @Schema(description = "用户类型（jobseeker/enterprise/admin）")
         private String userType;
 
-        @Schema(description = "邮箱", example = "zhangsan@example.com")
+        @Schema(description = "邮箱")
         private String email;
 
-        @Schema(description = "手机号", example = "13800138000")
+        @Schema(description = "手机号")
         private String phone;
 
-        @Schema(description = "账号状态（active/disabled）", example = "active")
+        @Schema(description = "账号状态（active/disabled）")
         private String status;
 
         @Schema(description = "注册时间")

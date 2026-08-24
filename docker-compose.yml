@@ -1,0 +1,33 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    ports:
+      - "13306:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: 123
+    volumes:
+      - "./mysql/data:/var/lib/mysql"
+      - "./mysql/conf:/etc/mysql/conf.d"
+      - "./mysql/init:/docker-entrypoint-initdb.d"
+    networks:
+      - cn-net
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "16379:6379"
+    command:
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+    volumes:
+      - "./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro"
+      - "./redis/data:/data"
+    networks:
+      - cn-net
+
+networks:
+  cn-net:
+    name: CareerNexus
